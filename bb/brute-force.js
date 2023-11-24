@@ -77,9 +77,7 @@ export async function main(ns) {
     ns.killall(target, true);
 
     let freeMem = ns.getServerMaxRam(target) - ns.getServerUsedRam(target);
-    if (target == "home") {
-      freeMem -= 50;
-    } else if (freeMem > reqMem) {
+    if (target != "home" && freeMem > reqMem) {
       ns.scp(script, target);
     }
 
