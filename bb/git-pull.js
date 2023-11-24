@@ -2,6 +2,7 @@ let $ = {};
 const argsSchema = [
   ['github', 'curzonj'],
   ['repository', 'bitburner-scripts'],
+  ['file', []],
   ['path', 'bb'],
   ['ref', 'main'],
   ['extension', ['.js']], // Files to download by extension
@@ -21,7 +22,7 @@ export async function main(ns) {
   $.options = ns.flags(argsSchema);
   $.ref = ns.args[0] || $.options.ref;
 
-  const filesToDownload = await repositoryListing($.options.path);
+  const filesToDownload = $.options.file.length > 0 ? $.options.file : await repositoryListing($.options.path);
 
   const baseUrl = `raw.githubusercontent.com/${$.options.github}/${$.options.repository}/${$.ref}/`;
   for (const path of filesToDownload) {
