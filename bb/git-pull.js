@@ -25,7 +25,7 @@ export async function main(ns) {
 
   const baseUrl = `raw.githubusercontent.com/${$.options.github}/${$.options.repository}/${$.ref}/`;
   for (const path of filesToDownload) {
-    const url = `https://${baseUrl}/${path}?ts=${new Date().getTime()}`;
+    const url = `https://${baseUrl}/${path}';
     if (!await ns.wget(url, path)) {
       ns.tprint(`Failed to download ${path}`);
     }
