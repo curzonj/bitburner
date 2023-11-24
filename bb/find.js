@@ -5,7 +5,7 @@ export async function main(ns) {
     ns.exit();
   }
 
-  ns.tprint(find(ns, "home", "home", goal);
+  ns.tprint(find(ns, "home", "home", goal));
 }
 
 function find(ns, name, origin, goal) {
