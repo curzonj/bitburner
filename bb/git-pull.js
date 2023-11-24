@@ -2,7 +2,7 @@ let $ = {};
 const argsSchema = [
   ['github', 'curzonj'],
   ['repository', 'bitburner-scripts'],
-  ['path', 'scripts'],
+  ['path', 'bb'],
   ['ref', 'main'],
   ['extension', ['.js']], // Files to download by extension
 ];
@@ -21,7 +21,7 @@ export async function main(ns) {
   $.options = ns.flags(argsSchema);
   $.ref = ns.args[0] || $.options.ref;
 
-  const filesToDownload = await repositoryListing();
+  const filesToDownload = await repositoryListing($.options.path);
 
   const baseUrl = `raw.githubusercontent.com/${$.options.github}/${$.options.repository}/${$.ref}/`;
   for (const path of filesToDownload) {
@@ -41,7 +41,6 @@ async function repositoryListing(folder = '') {
   let files = payload.filter(f => f.type == "file").map(f => f.path)
     .filter(f => $.options.extension.some(ext => f.endsWith(ext)));
   for (const folder of folders)
-    files = files.concat((await repositoryListing(folder))
-      .map(f => `${f}`)); // Game requires folders to have a leading slash
+    files = files.concat((await repositoryListing(folder));
   return files;
 }
