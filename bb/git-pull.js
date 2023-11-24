@@ -19,10 +19,11 @@ function buildClient(ns) {
 export async function main(ns) {
   $.request = buildClient(ns);
   $.options = ns.flags(argsSchema);
+  $.ref = ns.args[0] || $.options.ref;
 
   const filesToDownload = await repositoryListing();
 
-  const baseUrl = `raw.githubusercontent.com/${$.options.github}/${$.options.repository}/${$.options.ref}/`;
+  const baseUrl = `raw.githubusercontent.com/${$.options.github}/${$.options.repository}/${$.ref}/`;
   for (const path of filesToDownload) {
     const url = `https://${baseUrl}/${path}?ts=${new Date().getTime()}`;
     if (!await ns.wget(url, path)) {
@@ -33,7 +34,7 @@ export async function main(ns) {
 }
 
 async function repositoryListing(folder = '') {
-  const listUrl = `https://api.github.com/repos/${$.options.github}/${$.options.repository}/contents/${folder}?ref=${$.options.ref}`
+  const listUrl = `https://api.github.com/repos/${$.options.github}/${$.options.repository}/contents/${folder}?ref=${$.ref}`
   const response = await $.request(listUrl);
   const payload = await response.json();
   const folders = payload.filter(f => f.type == "dir").map(f => f.path);
