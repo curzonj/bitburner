@@ -19,5 +19,5 @@ function find(ns, name, origin, goal) {
     .map(n => find(ns, n, name, goal))
     .filter(n => n && n.length > 0)
     .map(list => [ name, list ])
-    .flat();
+    .flat(2);
 }
