@@ -75,9 +75,9 @@ export async function main(ns) {
     ns.exit();
   }
 
-  const rpcHack = "/rpc-hack.js";
-  const rpcGrow = "/rpc-grow.js";
-  const rpcWeaken = "/rpc-weaken.js";
+  const rpcHack = "/bb/rpc-hack.js";
+  const rpcGrow = "/bb/rpc-grow.js";
+  const rpcWeaken = "/bb/rpc-weaken.js";
   const rpcMemReqs = {};
   const rpcFuncs = [rpcHack, rpcGrow, rpcWeaken];
   rpcFuncs.forEach(function (n) {

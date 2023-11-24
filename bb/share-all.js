@@ -12,8 +12,8 @@ export async function main(ns) {
       return;
     }
 
-    ns.scp('/rpc-share.js', target);
-    ns.exec('/rpc-share.js', target, Math.floor(freeMem / reqMem));
+    ns.scp('/bb/rpc-share.js', target);
+    ns.exec('/bb/rpc-share.js', target, Math.floor(freeMem / reqMem));
   })
 
   ns.tprint("done");

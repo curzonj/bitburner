@@ -5,11 +5,12 @@ export async function main(ns) {
     ['help', false],
   ]);
 
-  const reqMem = ns.getScriptRam("/hack-target.js");
-  const myLevel = ns.getHackingLevel();
 
   let targets = {};
-  let script = "/hack-target.js";
+  let script = "/bb/hack-target.js";
+
+  const reqMem = ns.getScriptRam(script);
+  const myLevel = ns.getHackingLevel();
 
   ns.tprint("Spawning workers, please wait...");
 
@@ -36,7 +37,7 @@ export async function main(ns) {
   })
 
   if (myLevel < 100) {
-    script = "/grind-target.js";
+    script = "/bb/grind-target.js";
     targets = {
       "n00dles": {
         level: ns.getServerRequiredHackingLevel("n00dles"),
