@@ -2,7 +2,7 @@ export async function main(ns) {
   const goal = ns.args[0];
   if (!goal) {
     ns.tprint("Usage: find.js <hostname>");
-    ns.exit)();
+    ns.exit();
   }
 
   ns.tprint(find(ns, "home", "home", goal);
