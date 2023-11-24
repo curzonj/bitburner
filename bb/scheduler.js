@@ -370,7 +370,7 @@ export async function main(ns) {
     let list = Object.keys(servers).
       filter(function (a) {
         const srvLvl = ns.getServerRequiredHackingLevel(a)
-        return srvLvl > 1 && srvLvl < lvl;
+        return srvLvl < lvl;
       }).
       sort(function (a, b) {
         const reqA = ns.getServerRequiredHackingLevel(a);
@@ -396,6 +396,11 @@ export async function main(ns) {
       let target = bestGrindTarget();
       let threads = calcGrindingThreads();
       let time = ns.getWeakenTime(target);
+
+      if (!target) {
+        await ns.asleep(60000);
+        continue;
+      }
 
       await spawnThreads(rpcWeaken, threads, target);
       await ns.asleep(time + margin);
