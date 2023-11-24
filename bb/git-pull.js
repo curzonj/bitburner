@@ -3,7 +3,7 @@ const argsSchema = [
   ['github', 'curzonj'],
   ['repository', 'bitburner-scripts'],
   ['path', 'scripts'],
-  ['branch', 'main'],
+  ['ref', 'main'],
   ['extension', ['.js']], // Files to download by extension
 ];
 
@@ -22,7 +22,7 @@ export async function main(ns) {
 
   const filesToDownload = await repositoryListing();
 
-  const baseUrl = `raw.githubusercontent.com/${$.options.github}/${$.options.repository}/${$.options.branch}/`;
+  const baseUrl = `raw.githubusercontent.com/${$.options.github}/${$.options.repository}/${$.options.ref}/`;
   for (const path of filesToDownload) {
     const url = `https://${baseUrl}/${path}?ts=${new Date().getTime()}`;
     if (!await ns.wget(url, path)) {
@@ -33,7 +33,7 @@ export async function main(ns) {
 }
 
 async function repositoryListing(folder = '') {
-  const listUrl = `https://api.github.com/repos/${$.options.github}/${$.options.repository}/contents/${folder}?ref=${$.options.branch}`
+  const listUrl = `https://api.github.com/repos/${$.options.github}/${$.options.repository}/contents/${folder}?ref=${$.options.ref}`
   const response = await $.request(listUrl);
   const payload = await response.json();
   const folders = payload.filter(f => f.type == "dir").map(f => f.path);
