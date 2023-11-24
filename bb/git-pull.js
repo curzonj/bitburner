@@ -41,6 +41,6 @@ async function repositoryListing(folder = '') {
   let files = payload.filter(f => f.type == "file").map(f => f.path)
     .filter(f => $.options.extension.some(ext => f.endsWith(ext)));
   for (const folder of folders)
-    files = files.concat((await repositoryListing(folder));
+    files = files.concat(await repositoryListing(folder));
   return files;
 }
