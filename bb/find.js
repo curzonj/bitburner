@@ -1,5 +1,5 @@
 export async function main(ns) {
-  ns.tprint(find(ns, "home", "home", ns.args[0]);
+  ns.tprint(find(ns, "home", "home", ns.args[0]));
 }
 
 function find(ns, name, origin, goal) {
@@ -7,9 +7,9 @@ function find(ns, name, origin, goal) {
     return [ name ];
   }
 
-  return $.ns
+  return ns
     .scan(name)
-    .filter(n => n != origin);
+    .filter(n => n != origin)
     .map(n => find(ns, n, name, goal))
     .filter(n => !!n);
 }
