@@ -2,9 +2,7 @@ import { allServers, validTargets, bestGrindTarget } from 'bb/lib.js'
 
 /** @param {NS} ns */
 export async function main(ns) {
-  const homeMaxRam = ns.getServerMaxRam("home");
   const flagArgs = ns.flags([
-    ['home', false],
     ['debug', false],
     ['trace', false],
     ['tail', false],
@@ -28,30 +26,27 @@ export async function main(ns) {
     ns.disableLog("ALL");
   }
 
-  const home = ns.getServer("home");
-  const servers = allServers(ns)
-    .map(s => ns.getServer(s))
-    .filter(s => s.hasAdminRights)
-    .reduce((acc, s) => {
-      acc[s.hostname] = s;
-      return acc;
-    }, {});
+  function getWorkers() {
+    return allServers(ns)
+      .filter(s => ns.hasRootAccess(s))
+      .filter(s => ns.getServerMaxRam(s) > 0);
+  }
 
   function getTotalMemoryInUse() {
-    return Object.keys(servers).reduce(function (acc, name) {
+    return getWorkers().reduce(function (acc, name) {
       return acc + ns.getServerUsedRam(name);
     }, 0);
   }
 
   function getTotalMemoryInstalled() {
-    return Object.keys(servers).reduce(function (acc, name) {
+    return getWorkers().reduce(function (acc, name) {
       return acc + ns.getServerMaxRam(name);
     }, 0);
   }
 
   const reservedMemory = flagArgs.reserved;
   const margin = flagArgs.margin;
-  const cpuCores = flagArgs.home ? home.cpuCores : 1;
+  const cpuCores = 1;
   const memoryBudget = {};
   const memoryUsedElsewhere = getTotalMemoryInUse();
   const selfMemReq = ns.getScriptRam("/bb/scheduler.js");
@@ -70,15 +65,6 @@ export async function main(ns) {
     rpcMemReqs[n] = ns.getScriptRam(n);
   });
   const maxRpcMemReq = Math.max.apply(null, Object.values(rpcMemReqs));
-  const maxHomeThreads = Math.floor(home.maxRam / maxRpcMemReq);
-
-  (function () {
-    for (var name in servers) {
-      ns.scp(rpcHack, name);
-      ns.scp(rpcGrow, name);
-      ns.scp(rpcWeaken, name);
-    }
-  })();
 
   if (flagArgs.tail) {
     ns.tail();
@@ -90,17 +76,12 @@ export async function main(ns) {
     const { freeMem } = procStats();
     const memRequired = rpcMemReqs[rpc] * threads;
 
-    let pool = Object.keys(servers).map(function (name) {
+    let pool = getWorkers().map(function (name) {
       return ns.getServer(name);
-    }).filter(function (server) {
-      return server.maxRam > 0;
     }).sort(function (a, b) {
       return (a.maxRam - a.ramUsed) - (b.maxRam - b.ramUsed);
     });
 
-    if (flagArgs.home) {
-      pool = [ns.getServer("home")];
-    }
 
     for (var i in pool) {
       var s = pool[i];
@@ -133,6 +114,8 @@ export async function main(ns) {
         // trigger a stacktrace
         localThreads = -1;
       }
+
+      ns.scp(rpc, name);
       ns.exec(rpc, name, localThreads, arg);
     }
 
@@ -148,9 +131,11 @@ export async function main(ns) {
     let freeMem = 0;
     let procs = 0;
 
-    for (var name in servers) {
-      let s = ns.getServer(name);
-      freeMem += (s.maxRam - s.ramUsed);
+    const list = getWorkers();
+
+    for (var i in list) {
+      let name = list[i];
+      freeMem += (ns.getServerMaxRam(name) - ns.getServerUsedRam(name));
       procs += ns.ps(name).length;
     }
 
@@ -204,14 +189,6 @@ export async function main(ns) {
   }
 
   async function loop(name) {
-    if (
-      ns.getServerMaxMoney(name) == 0 ||
-      name == "home" ||
-      name.startsWith("pserv")
-    ) {
-      return;
-    }
-
     const myLevel = ns.getHackingLevel();
     while (ns.getServerRequiredHackingLevel(name) > myLevel/2) {
       await ns.asleep(60000);

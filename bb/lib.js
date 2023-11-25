@@ -24,6 +24,7 @@ export function allServers(ns) {
 export function validTargets(ns) {
   let lvl = ns.getHackingLevel();
   return allServers(ns)
+    .filter(s => ns.hasRootAccess(s))
     .filter(s => ns.getServerMaxMoney(s) > 0)
     .filter(s => s != "home" && !s.startsWith("pserv"))
     .filter(s => ns.getServerRequiredHackingLevel(s) < lvl);
