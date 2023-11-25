@@ -37,7 +37,7 @@ export async function main(ns) {
   })
 
   if (myLevel < 100) {
-    script = "/bb/grind-target.js";
+    script = "/bb/rpc-grind.js";
     targets = {
       "n00dles": {
         level: ns.getServerRequiredHackingLevel("n00dles"),

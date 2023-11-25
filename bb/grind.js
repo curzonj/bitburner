@@ -5,8 +5,8 @@ export async function main(ns) {
     ['target', []],
   ]);
 
-  const rpcWeaken = "/bb/rpc-weaken.js";
-  const reqMem = ns.getScriptRam(rpcWeaken);
+  const script = "/bb/rpc-grind.js";
+  const reqMem = ns.getScriptRam(script);
   const myLevel = ns.getHackingLevel();
 
   let targets = [];
@@ -29,7 +29,7 @@ export async function main(ns) {
     .filter(s => ns.hasRootAccess(s));
   const totalThreads = workers.reduce((acc, name) => {
     ns.killall(name, true);
-    if (name != 'home') ns.scp(rpcWeaken, name);
+    if (name != 'home') ns.scp(script, name);
 
     const freeMem = ns.getServerMaxRam(name) - ns.getServerUsedRam(name);
     return acc + Math.floor(freeMem / reqMem);
@@ -46,7 +46,7 @@ export async function main(ns) {
       const freeMem = ns.getServerMaxRam(worker) - ns.getServerUsedRam(worker);
       const threads = Math.min(remaining, Math.floor(freeMem / reqMem));
       remaining -= threads;
-      ns.exec(rpcWeaken, worker, threads, target);
+      ns.exec(script, worker, threads, target);
     }
   }
 }
