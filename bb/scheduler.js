@@ -225,10 +225,10 @@ export async function main(ns) {
   }
 
   function generalInstability() {
-    // Make sure they are all initialized
-    activeTargets().forEach(n => unstableCounters[n] ||= 0);
+    // Just a sanity check
+    if (allTargetsStable()) return false;
 
-    return instabilityCount() >= activeTargets().length;
+    return activeTargets().every(isUnstable);
   }
 
   let hackPercentage = flagArgs.steal;
@@ -252,9 +252,11 @@ export async function main(ns) {
     const inUse = getTotalMemoryInUse();
     const installed = getTotalMemoryInstalled();
 
-    if (inUse > installed * flagArgs.maxUtil) memoryFactor += 0.01;
-    if (inUse > installed * 0.98) memoryFactor += 0.20;
-    if (generalInstability())     memoryFactor += 0.20;
+    if (memoryFactor <= 2) {
+      if (inUse > installed * flagArgs.maxUtil) memoryFactor += 0.01;
+      if (inUse > installed * 0.98) memoryFactor += 0.20;
+      if (generalInstability())     memoryFactor += 0.20;
+    }
 
     if (allTargetsStable() && inUse < installed * flagArgs.minUtil) {
       if (getConcurrency() < flagArgs.concurrency || memoryFactor > 1) {
