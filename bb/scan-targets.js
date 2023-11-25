@@ -29,7 +29,7 @@ export async function main(ns) {
     const minDifficulty = ns.getServerMinSecurityLevel(name);
 
     ns.tprint(ns.sprintf(
-      "%(name)' -20s %(levelReq)' 4.0d %(money)' 10s %(max)' 10s%(hackDifficulty)' 10.1d%(minDifficulty)' 6.1d",
+      "%(name)' -20s %(levelReq)' 4.0d %(money)' 10s %(max)' 10s%(hackDifficulty)' 10.3d%(minDifficulty)' 10.3d",
       { name, levelReq, money: ns.formatNumber(money), max: ns.formatNumber(maxMoney), hackDifficulty, minDifficulty }
     ));
   }
