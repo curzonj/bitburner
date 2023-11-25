@@ -148,14 +148,17 @@ export async function main(ns) {
   async function monitoringLoop() {
     while (true) {
       const { freeMem, procs, ramBudget } = procStats();
-      ns.print({
-        procs,
-        ratio: ns.formatPercent(getTotalMemoryInUse() / ramBudget, 0),
-        free: ns.formatRam(freeMem),
-        used: ns.formatRam(getTotalMemoryInUse()),
-        total: ns.formatRam(getTotalMemoryInstalled()),
-        budget: ns.formatRam(ramBudget),
-      });
+      ns.print(ns.sprintf(
+        "%(procs)' 5d %(ratio)' 4s Budget: %(budget)' 10s Used: %(used)' Free: 10s %(free)' 10s Installed: %(total)' 10s",
+        {
+          procs,
+          ratio: ns.formatPercent(getTotalMemoryInUse() / ramBudget, 0),
+          free: ns.formatRam(freeMem),
+          used: ns.formatRam(getTotalMemoryInUse()),
+          total: ns.formatRam(getTotalMemoryInstalled()),
+          budget: ns.formatRam(ramBudget),
+        }
+      );
       await ns.asleep(5000);
     }
   }
