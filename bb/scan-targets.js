@@ -3,7 +3,7 @@ import { allServers } from 'bb/lib.js'
 export async function main(ns) {
   const list = allServers(ns);
   const myLevel = ns.getHackingLevel();
-  const format = "%(name)' -20s %(levelReq)' 4d %(money)' 10s %(max)' 10s%(hackDifficulty)' 6d%(minDifficulty)' 6d";
+  const format = "%(name)' -20s %(levelReq)' 4s %(money)' 10s %(max)' 10s%(hackDifficulty)' 6s%(minDifficulty)' 6s";
 
   ns.tprint(ns.sprintf(format, {
     name: "Name",
