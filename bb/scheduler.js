@@ -77,6 +77,26 @@ export async function main(ns) {
     ns.moveTail(0, 0);
   }
 
+  function updateMemoryBudget(name, threads) {
+    // Only recalculate the optimal budget after big changes in level
+    if (memoryBudgetLevel[name] && memoryBudgetLevel[name] > myLevel - 20) return true;
+
+    const budget = (
+      rpcMemReqs[rpcWeaken] * threads.growWeaken +
+      rpcMemReqs[rpcWeaken] * threads.hackWeaken +
+      rpcMemReqs[rpcGrow] * threads.grow +
+      rpcMemReqs[rpcHack] * threads.hack
+    );
+
+    if (budget < 1 || budget == null || !isFinite(budget) || isNaN(budget)) {
+      return false;
+    }
+
+    if (isOptimal(name)) memoryBudgetLevel[name] = myLevel;
+    memoryBudget[name] = Math.ceil(budget);
+    return true;
+  }
+
   async function spawnThreads(rpc, threads, arg) {
     let remaining = Math.ceil(threads);
     const { freeMem } = procStats();
@@ -182,6 +202,16 @@ export async function main(ns) {
     }
   }
 
+  function isOptimal(name) {
+    const moneyMax = ns.getServerMaxMoney(name);
+    const moneyAvailable = ns.getServerMoneyAvailable(name);
+    const hackDifficulty = ns.getServerSecurityLevel(name);
+    const minDifficulty = ns.getServerMinSecurityLevel(name);
+
+    return (moneyAvailable == moneyMax && hackDifficulty == minDifficulty);
+  }
+
+
   function isStable(name) {
     const moneyMax = ns.getServerMaxMoney(name);
     const moneyAvailable = ns.getServerMoneyAvailable(name);
@@ -201,7 +231,7 @@ export async function main(ns) {
   }
 
   const unstableCounters = {};
-  function instability(name) {
+  function instabilityCheck(name) {
     unstableCounters[name] ||= 0;
 
     if (isStable(name)) {
@@ -210,7 +240,15 @@ export async function main(ns) {
       unstableCounters[name]++;
     }
 
-    return unstableCounters[name];
+    return isUnstable(name);
+  }
+
+  function isUnstable(name) {
+    return unstableCounters[name] && unstableCounters[name] > flagArgs.instability;
+  }
+
+  function instabilityCount() {
+    return Object.values(unstableCounters).filter(n => n > flagArgs.instability).length;
   }
 
   const metrics = { moneyEarned: 0 };
@@ -225,12 +263,10 @@ export async function main(ns) {
 
       const inUse = getTotalMemoryInUse();
       const installed = getTotalMemoryInstalled();
-      const unstableCount = Object.values(unstableCounters)
-        .filter(n => n > flagArgs.instability).length;
 
       const data = {
         procs,
-        unstable: unstableCount,
+        unstable: instabilityCount(),
         factor: memoryFactor,
         steal: hackPercentage,
         concurrency,
@@ -344,27 +380,12 @@ export async function main(ns) {
     threads.growWeaken = Math.ceil((growthAnalyze+extraDifficulty) / weakenAnalyze);
     threads.hackWeaken = Math.ceil(hackAnalyze / weakenAnalyze)
 
-    const budget = (
-      rpcMemReqs[rpcWeaken] * threads.growWeaken +
-      rpcMemReqs[rpcWeaken] * threads.hackWeaken +
-      rpcMemReqs[rpcGrow] * threads.grow +
-      rpcMemReqs[rpcHack] * threads.hack
-    );
-
-    if (budget < 1 || budget == null || !isFinite(budget) || isNaN(budget)) {
+    if (!updateMemoryBudget(name, threads)) {
       ns.tprint({ threads, growthAnalyze, weakenAnalyze, hackAnalyze, growthFactor });
       ns.tprint(ns.sprintf("ERROR: Failed to build budget for %s", name));
-      return null;
     }
 
-    // Only recalculate the optimal budget after big changes in level
-    if (!memoryBudgetLevel[name] || memoryBudgetLevel[name] < myLevel - 20) {
-      if (moneyMax == moneyAvailable && hackDifficulty == minDifficulty) {
-        memoryBudgetLevel[name] = myLevel;
-      }
-
-      memoryBudget[name] = Math.ceil(budget);
-    }
+    // TODO limit the number of threads if the server is unstable
 
     return threads;
   }
@@ -395,6 +416,8 @@ export async function main(ns) {
     let hackDifficulty = ns.getServerSecurityLevel(name);
     let minDifficulty = ns.getServerMinSecurityLevel(name);
 
+    instabilityCheck(name);
+
     const times = calculateTimes(name);
     const threads = calculateThreads(name);
 
@@ -414,7 +437,7 @@ export async function main(ns) {
     await ns.asleep(times.growLead);
     await spawnThreads(rpcGrow, threads.grow, name);
 
-    if (instability(name) > flagArgs.instability) {
+    if (isUnstable(name)) {
       await ns.asleep(times.growTime + (margin*2));
     } else {
       await ns.asleep(times.hackLead - times.growLead);
