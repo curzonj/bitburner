@@ -12,6 +12,7 @@ export async function main(ns) {
     ['prepThresh', 1.20],
     ['maxUtil', 0.90],
     ['minUtil', 0.85],
+    ['concurrency', 20],
     ['margin',200],
     ['reserved', 0],
     ['steal', 0.02],
@@ -69,6 +70,7 @@ export async function main(ns) {
     rpcMemReqs[n] = ns.getScriptRam(n);
   });
   const maxRpcMemReq = Math.max.apply(null, Object.values(rpcMemReqs));
+  const targets = flagArgs.target.length > 0 ? flagArgs.target : validTargets(ns);
 
   if (flagArgs.tail) {
     ns.tail();
@@ -162,12 +164,17 @@ export async function main(ns) {
   function updateTuningParameters() {
     const inUse = getTotalMemoryInUse();
     const installed = getTotalMemoryInstalled();
-    const concurrency = getConcurrency();
-
-    if (concurrency > 20) hackPercentage += 0.01;
 
     if (inUse > installed * flagArgs.maxUtil) memoryFactor += 0.01;
-    if (inUse < installed * flagArgs.minUtil && memoryFactor > flagArgs.minCommit) memoryFactor -= 0.01;
+
+    if (allTargetsStable() && inUse < installed * flagsArgs.minUtil) {
+      if (getConcurrency() > flagArgs.concurrency) {
+        memoryFactor -= 0.01;
+      } else {
+        memoryFactor += 0.1
+        hackPercentage += 0.001;
+      }
+    }
   }
 
   const metrics = { moneyEarned: 0 };
@@ -248,6 +255,22 @@ export async function main(ns) {
         ns.print(data);
       }
     });
+  }
+
+  function allTargetsStable() {
+    return activeTargets().every(name => {
+      const moneyMax = ns.getServerMaxMoney(name);
+      const moneyAvailable = ns.getServerMoneyAvailable(name);
+      const hackDifficulty = ns.getServerSecurityLevel(name);
+      const minDifficulty = ns.getServerMinSecurityLevel(name);
+
+      return (moneyMax == moneyAvailable && hackDifficulty == minDifficulty);
+    });
+  }
+
+  function activeTargets() {
+    const myLevel = ns.getHackingLevel();
+    return targets.filter(n => ns.getServerRequiredHackingLevel(n) > myLevel/2);
   }
 
   async function loop(name) {
@@ -428,7 +451,6 @@ export async function main(ns) {
   await ns.asleep(10);
 
   // main body
-  const targets = flagArgs.target.length > 0 ? flagArgs.target : validTargets(ns);
   targets.forEach(calculateThreads);
 
   await Promise.all([
