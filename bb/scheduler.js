@@ -263,7 +263,7 @@ export async function main(ns) {
 
     if (allTargetsStable() && inUse < installed * flagArgs.minUtil) {
       // Slow start to avoid over hacking
-      if (maxConcurrency < flagArgs.concurrency*10) maxConcurrency++;
+      if (maxConcurrency < flagArgs.concurrency*5) maxConcurrency++;
 
       if (getConcurrency() < flagArgs.concurrency || memoryFactor > 1) {
         memoryFactor -= 0.01;
@@ -419,10 +419,12 @@ export async function main(ns) {
   }
 
   async function bootstrapSteal() {
+    let i=0;
     do {
       hackPercentage += 0.005;
       activeTargets().forEach(calculateThreads);
       await ns.asleep(10);
+      ns.tprint(`${i++} Bootstrap params: `, { current: getConcurrency(true), target: flagArgs.concurrency, hackPercentage });
     } while(getConcurrency(true) > flagArgs.concurrency);
   }
 
