@@ -142,7 +142,7 @@ export async function main(ns) {
     return { freeMem, procs };
   }
 
-  function totalBudget() {
+  function getTotalBudget() {
     return Object.values(memoryBudget).reduce((acc, num) => acc + num, 0);
   }
 
