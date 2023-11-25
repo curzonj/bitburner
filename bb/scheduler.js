@@ -14,7 +14,7 @@ export async function main(ns) {
     ['minUtil', 0.85],
     ['concurrency', 20],
     ['margin',200],
-    ['reserved', 0],
+    ['reserved', 10],
     ['steal', 0.02],
     ['memoryOversubscription', 0.2],
     ['target', []],
