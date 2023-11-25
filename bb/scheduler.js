@@ -363,7 +363,7 @@ export async function main(ns) {
 
   async function grindHackingExperience() {
     while (true) {
-      let target = bestGrindTarget();
+      let target = bestGrindTarget(ns);
       let threads = calcGrindingThreads();
       let time = ns.getWeakenTime(target);
 
