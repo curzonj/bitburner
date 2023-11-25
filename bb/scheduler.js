@@ -302,7 +302,7 @@ export async function main(ns) {
       };
 
       try {
-        ns.print(ns.sprintf("%(procs)' 5d  mFCSu: %(factor)' 5.2f / %(concurrency)' 5.2f / %(steal)' 5.3f / %(unstable)' 1d  Mem: %(usedPct)' 6s / %(free)' 8s  $ %(earned)' 8s",data));
+        ns.print(ns.sprintf("%(procs)' 5d  mFCSu: %(factor)' 4.2f / %(concurrency)' 6.2f / %(steal)' 5.3f / %(unstable)' 1d  Mem: %(usedPct)' 6s / %(free)' 8s  $ %(earned)' 8s",data));
       } catch(e) {
         ns.print("ERROR: ", data);
       }
