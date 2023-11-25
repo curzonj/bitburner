@@ -185,7 +185,7 @@ export async function main(ns) {
           {
             procs,
             factor: memoryFactor,
-            ratio: ((inUse / ramBudget) / concurrency),
+            ratio: ((inUse / ramBudget) / concurrency) || 0,
             free: ns.formatRam(freeMem),
             used: ns.formatRam(inUse),
             total: ns.formatRam(installed),
