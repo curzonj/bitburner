@@ -1,5 +1,4 @@
-/** @param {NS} ns */
-import { allServers } from 'lib.js'
+import { allServers } from 'bb/lib.js'
 
 export async function main(ns) {
   const list = allServers(ns);
