@@ -199,7 +199,7 @@ export async function main(ns) {
 
   function activeTargets() {
     const myLevel = ns.getHackingLevel();
-    return targets.filter(n => ns.getServerRequiredHackingLevel(n) > myLevel/2);
+    return targets.filter(n => ns.getServerRequiredHackingLevel(n) < myLevel/2);
   }
 
   const unstableCounters = {};
@@ -231,19 +231,8 @@ export async function main(ns) {
 
   function generalInstability() {
     const list = activeTargets();
-    const unstable = list.every(n => isUnstable(n) && !isStable(n));
-    const stable = allTargetsStable();
 
-    if (unstable && stable) {
-      const data = list.reduce((acc, n) => {
-        acc[n] = { u: isUnstable(n), s: isStable(n) };
-        return acc;
-      }, {});
-
-      ns.print("WARNING: ", data, { stable,  unstable });
-    }
-
-    return unstable;
+    return list.length > 0 && list.every(n => isUnstable(n) && !isStable(n)) && list.some(isUnstable);
   }
 
   let hackPercentage = flagArgs.steal;
