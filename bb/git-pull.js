@@ -28,7 +28,7 @@ export async function main(ns) {
   await Promise.all(files.map(path => {
     const url = `https://${baseUrl}/${path}`;
     return ns.wget(url, path).catch(e => ns.tprint(`Failed to download ${path}`));
-  });
+  }));
 
   ns.tprint(`INFO: Pull complete.`);
 }
