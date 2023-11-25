@@ -2,7 +2,7 @@
 
 ## Early game
 
-1. run `grind.js` to get your hacking level up.
-2. When you're ready for money run `scheduler.js`. At first you'll need to
-   specify the targets with `--target` to balance between running out of
-   memory sometimes and your memory all being unused.
+Target foodnstuff, joesguns, and sigmacosmetics at first.
+
+1. First run `grind.js` to get your hacking level up and prep the servers.
+2. Then run `scheduler.js --steal 0.01 --concurrency 5`
