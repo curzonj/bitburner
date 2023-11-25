@@ -150,7 +150,7 @@ export async function main(ns) {
       const { freeMem, procs, ramBudget } = procStats();
       ns.print({
         procs,
-        ratio: freeMem / budget,
+        ratio: freeMem / ramBudget,
         free: ns.formatRam(freeMem),
         used: ns.formatRam(getTotalMemoryInUse()),
         total: ns.formatRam(getTotalMemoryInstalled()),
