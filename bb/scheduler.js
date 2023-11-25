@@ -51,6 +51,7 @@ export async function main(ns) {
   const margin = flagArgs.margin;
   const cpuCores = 1;
   const memoryBudget = {};
+  const memoryBudgetLevel = {};
   const memoryUsedElsewhere = getTotalMemoryInUse();
   const selfMemReq = ns.getScriptRam("/bb/scheduler.js");
 
@@ -319,7 +320,14 @@ export async function main(ns) {
       return null;
     }
 
-    memoryBudget[name] = Math.ceil(budget);
+    // Only recalculate the optimal budget after big changes in level
+    if (!memoryBudgetLevel[name] || memoryBudgetLevel[name] < myLevel - 20) {
+      if (moneyMax == moneyAvailable && hackDifficulty == minDifficulty) {
+        memoryBudgetLevel[name] = myLevel;
+      }
+
+      memoryBudget[name] = Math.ceil(budget);
+    }
 
     return threads;
   }
