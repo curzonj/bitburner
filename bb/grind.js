@@ -3,6 +3,7 @@ import { allServers, validTargets, bestGrindTarget } from 'bb/lib.js'
 export async function main(ns) {
   const flagArgs = ns.flags([
     ['target', []],
+    ['all', false],
   ]);
 
   const script = "/bb/rpc-grind.js";
@@ -10,9 +11,7 @@ export async function main(ns) {
   const myLevel = ns.getHackingLevel();
 
   let targets = [];
-  if (flagArgs.target.length == 1 && flagArgs.target[0] == 'best') {
-    targets = [ bestGrindTarget(ns) ];
-  } else if (flagArgs.target.length == 1 && flagArgs.target[0] == 'all') {
+  if (flagArgs.all) {
     targets = validTargets(ns)
   } else if (flagArgs.target.length > 0) {
     targets = flagArgs.target;
