@@ -418,12 +418,19 @@ export async function main(ns) {
     return threads;
   }
 
-  async function bootstrapSteal() {
+  async function bootstrapParameters() {
     let i=0;
     do {
       hackPercentage += 0.005;
       activeTargets().forEach(calculateThreads);
+
       ns.print(`${i++} Bootstrap params: `, { current: getConcurrency(true), target: flagArgs.concurrency, hackPercentage });
+
+      if (hackPercentage > 0.9) {
+        ns.print("ERROR: failed to converge parameters");
+        ns.exit();
+      }
+
       await ns.sleep(10);
     } while(getConcurrency(true) > flagArgs.concurrency);
   }
@@ -516,7 +523,7 @@ export async function main(ns) {
   }
   */
 
-  await bootstrapSteal();
+  await bootstrapParameters();
 
   accounting();
   remoteDebugLogging();
