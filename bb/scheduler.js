@@ -140,7 +140,7 @@ export async function main(ns) {
     }
 
     const ramBudget = Object.values(memoryBudget)
-      .reduce((acc, num) => acc + num);
+      .reduce((acc, num) => acc + num, 0);
 
     return { freeMem, procs, ramBudget };
   }
