@@ -179,23 +179,22 @@ export async function main(ns) {
       const inUse = getTotalMemoryInUse();
       const installed = getTotalMemoryInstalled();
 
+      const data = {
+        procs,
+        factor: memoryFactor,
+        ratio: (inUse / ramBudget),
+        free: ns.formatRam(freeMem),
+        used: ns.formatRam(inUse),
+        total: ns.formatRam(installed),
+        usedPct: ns.formatPercent(inUse / installed),
+        budget: ns.formatRam(ramBudget),
+        earned: ns.formatNumber(money),
+      };
+
       try {
-        ns.print(ns.sprintf(
-          "%(procs)' 5d   Calc: %(factor)' 5.2f   Obs: %(ratio)' 5.2f  Budget: %(budget)' 8s  Used: %(used)' 8s  %(usedPct)' 8s  Free: %(free)' 8s  Max: %(total)' 8s  $ %(earned)' 8s",
-          {
-            procs,
-            factor: memoryFactor,
-            ratio: ((inUse / ramBudget) / concurrency) || 0,
-            free: ns.formatRam(freeMem),
-            used: ns.formatRam(inUse),
-            total: ns.formatRam(installed),
-            usedPct: ns.formatPercent(inUse / installed),
-            budget: ns.formatRam(ramBudget),
-            earned: ns.formatNumber(money),
-          }
-        ));
+        ns.print(ns.sprintf("%(procs)' 5d   Calc: %(factor)' 5.2f   Obs: %(ratio)' 5.2f  Budget: %(budget)' 8s  Used: %(used)' 8s  %(usedPct)' 8s  Free: %(free)' 8s  Max: %(total)' 8s  $ %(earned)' 8s",data));
       } catch(e) {
-        ns.print("bad monitoring data");
+        ns.print("ERROR: ", data);
       }
       await ns.asleep(5000);
     }
