@@ -25,17 +25,13 @@ export async function main(ns) {
     ns.disableLog("getHackingLevel");
     ns.disableLog("getServerRequiredHackingLevel");
     ns.disableLog("getServerMaxRam");
+    ns.disableLog("getServerUsedRam");
     ns.disableLog("getServerMoneyAvailable");
     ns.disableLog("getServerMaxMoney");
     ns.disableLog("getServerMinSecurityLevel");
     ns.disableLog("getServerSecurityLevel");
   } else {
     ns.disableLog("ALL");
-  }
-
-  function trace(...opts) {
-    if (!flagArgs.trace) return;
-    ns.print.apply(opts);
   }
 
   function getWorkers() {
@@ -259,7 +255,7 @@ export async function main(ns) {
 
     const calc = installed / (budget * memoryFactor);
 
-    trace({ memoryBudget, budget, installed, memoryFactor, calc, theory, maxConcurrency });
+    ns.print({ memoryBudget, budget, installed, memoryFactor, calc, theory, maxConcurrency });
 
     if (theory) return calc;
     if (allTargetsUnhealthy()) return 1;
