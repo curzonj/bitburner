@@ -7,9 +7,9 @@ export async function main(ns) {
     ['trace', false],
     ['tail', false],
     ['grind', false],
+    ['instability', 4],
     ['initialCommit', 1.4],
     ['minCommit', 0.6],
-    ['prepThresh', 1.20],
     ['maxUtil', 0.90],
     ['minUtil', 0.85],
     ['concurrency', 20],
@@ -258,20 +258,35 @@ export async function main(ns) {
     });
   }
 
-  function allTargetsStable() {
-    return activeTargets().every(name => {
-      const moneyMax = ns.getServerMaxMoney(name);
-      const moneyAvailable = ns.getServerMoneyAvailable(name);
-      const hackDifficulty = ns.getServerSecurityLevel(name);
-      const minDifficulty = ns.getServerMinSecurityLevel(name);
+  function isStable(name) {
+    const moneyMax = ns.getServerMaxMoney(name);
+    const moneyAvailable = ns.getServerMoneyAvailable(name);
+    const hackDifficulty = ns.getServerSecurityLevel(name);
+    const minDifficulty = ns.getServerMinSecurityLevel(name);
 
-      return (moneyMax == moneyAvailable && hackDifficulty == minDifficulty);
-    });
+    return (moneyMax == moneyAvailable && hackDifficulty == minDifficulty);
+  }
+
+  function allTargetsStable() {
+    return activeTargets().every(isStable);
   }
 
   function activeTargets() {
     const myLevel = ns.getHackingLevel();
     return targets.filter(n => ns.getServerRequiredHackingLevel(n) > myLevel/2);
+  }
+
+  const unstable = {};
+  function instability(name) {
+    unstable[name] ||= 0;
+
+    if (isStable(name)) {
+      unstable[name] = 0;
+    } else {
+      unstable[name]++;
+    }
+
+    return unstable[name];
   }
 
   async function loop(name) {
@@ -282,15 +297,8 @@ export async function main(ns) {
 
     let batchID = 0;
     while (true) {
-      let s = ns.getServer(name);
-      let nextSleep = margin * 4;
-
-      if (s.hackDifficulty > (s.minDifficulty * flagArgs.prepThresh)) {
-        nextSleep += ns.getWeakenTime(name);
-      }
-
       const batchLength = ns.getWeakenTime(name) + (margin * 4);
-      nextSleep = Math.max(nextSleep, batchLength / getConcurrency());
+      const nextSleep = Math.max(margin * 4, batchLength / getConcurrency());
 
       let prom = batch(batchID++, name);
       if (flagArgs.once) {
@@ -330,9 +338,8 @@ export async function main(ns) {
     const weakenAnalyze = ns.weakenAnalyze(1, cpuCores);
     const hackAnalyze = ns.hackAnalyzeSecurity(threads.hack, name);
 
-    threads.growWeaken = Math.ceil(growthAnalyze / weakenAnalyze);
-    threads.hackWeaken = Math.ceil((hackAnalyze+extraDifficulty) / weakenAnalyze)
-    threads.prepWeaken = Math.ceil(extraDifficulty / weakenAnalyze);
+    threads.growWeaken = Math.ceil((growthAnalyze+extraDifficulty) / weakenAnalyze);
+    threads.hackWeaken = Math.ceil(hackAnalyze / weakenAnalyze)
 
     const budget = (
       rpcMemReqs[rpcWeaken] * threads.growWeaken +
@@ -369,19 +376,21 @@ export async function main(ns) {
     times.growLead = times.weakenTime - times.growTime - margin;
     times.hackLead = times.weakenTime - times.hackTime - margin * 3;
     times.weakenLead = margin * 2;
-    times.trailingMargin = margin * 4;
 
     return times;
   }
 
   async function batch(batchID, name) {
-    let s = ns.getServer(name);
-
     function log(src, argv) {
       argv['batchID'] = batchID;
       argv['name'] = name;
       ns.print("loop." + src + " ", argv);
     }
+
+    let moneyMax = ns.getServerMaxMoney(name);
+    let moneyAvailable = ns.getServerMoneyAvailable(name);
+    let hackDifficulty = ns.getServerSecurityLevel(name);
+    let minDifficulty = ns.getServerMinSecurityLevel(name);
 
     const times = calculateTimes(name);
     const threads = calculateThreads(name);
@@ -390,29 +399,29 @@ export async function main(ns) {
       return;
     }
 
-    const stats = { minDifficulty: s.minDifficulty, difficulty: s.hackDifficulty, money: s.moneyAvailable, max: s.moneyMax };
+    const stats = { minDifficulty, hackDifficulty, money: moneyAvailable, max: moneyMax };
     if (flagArgs.debug) {
       log('threads', threads);
       log("start", stats);
     }
-    if (s.hackDifficulty > (s.minDifficulty * flagArgs.prepThresh)) {
-      await spawnThreads(rpcWeaken, threads.prepWeaken, name);
-      ns.print(ns.sprintf("weakening %s for %s", name, ns.tFormat(times.weakenTime)));
-      await ns.asleep(times.weakenTime + margin);
+
+    await spawnThreads(rpcWeaken, threads.hackWeaken, name);
+    await ns.asleep(margin * 2);
+    await spawnThreads(rpcWeaken, threads.growWeaken, name);
+    await ns.asleep(times.growLead);
+    await spawnThreads(rpcGrow, threads.grow, name);
+
+    if (instability(name) > flagArgs.instability) {
+      ns.print(ns.sprintf("WARNING: %s is unstable, skipping hack", name));
+      await ns.asleep(times.growTime + (margin*2));
     } else {
-      await spawnThreads(rpcWeaken, threads.hackWeaken, name);
-      await ns.asleep(margin * 2);
-      await spawnThreads(rpcWeaken, threads.growWeaken, name);
-      await ns.asleep(times.growLead);
-      await spawnThreads(rpcGrow, threads.grow, name);
       await ns.asleep(times.hackLead - times.growLead);
       await spawnThreads(rpcHack, threads.hack, name);
-      await ns.asleep(times.hackTime + times.trailingMargin);
+      await ns.asleep(times.hackTime + (margin*4));
     }
 
     if (flagArgs.debug) {
-      s = ns.getServer(name);
-      log("end", { minDifficulty: s.minDifficulty, difficulty: s.hackDifficulty, money: s.moneyAvailable, max: s.moneyMax });
+      log("end", { minDifficulty , hackDifficulty, money: moneyAvailable, max: moneyMax });
     }
   }
 
