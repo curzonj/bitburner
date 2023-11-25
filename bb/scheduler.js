@@ -145,11 +145,15 @@ export async function main(ns) {
     return { freeMem, procs, ramBudget };
   }
 
+  const metrics = { moneyEarned: 0 };
   async function monitoringLoop() {
     while (true) {
       const { freeMem, procs, ramBudget } = procStats();
+      const money = metrics.moneyEarned;
+      metrics.moneyEarned = 0;
+
       ns.print(ns.sprintf(
-        "%(procs)' 5d   %(ratio)' 8s    Budget: %(budget)' 8s    Used: %(used)' 8s    Free: %(free)' 8s    Installed: %(total)' 8s",
+        "%(procs)' 5d   %(ratio)' 8s    Budget: %(budget)' 8s    Used: %(used)' 8s    Free: %(free)' 8s    Installed: %(total)' 8s    Earned: %(earned)' 8s",
         {
           procs,
           ratio: ns.formatPercent(getTotalMemoryInUse() / ramBudget, 0),
@@ -157,6 +161,7 @@ export async function main(ns) {
           used: ns.formatRam(getTotalMemoryInUse()),
           total: ns.formatRam(getTotalMemoryInstalled()),
           budget: ns.formatRam(ramBudget),
+          earned: ns.formatNumber(money),
         }
       ));
       await ns.asleep(5000);
@@ -177,6 +182,12 @@ export async function main(ns) {
         await fn(data);
       }
     }
+  }
+
+  async function accounting() {
+    await listen(4, function (data) {
+      metrics.moneyEarned += parseInt(data);
+    });
   }
 
   async function remotePrintLogging() {
@@ -364,6 +375,7 @@ export async function main(ns) {
     }
   }
 
+  accounting();
   remoteDebugLogging();
   remoteTraceLogging();
   remotePrintLogging();

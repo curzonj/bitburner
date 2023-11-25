@@ -10,5 +10,5 @@ export async function main(ns) {
   }
 
   await log(1, ns.sprintf("rpc-hack: %j", { target, result, difficulty: ns.getServerSecurityLevel(target), money: ns.getServerMoneyAvailable(target) }));
-  await log(3, ns.sprintf("earned %s from %s", ns.formatNumber(result), target));
+  await log(4, result);
 }
