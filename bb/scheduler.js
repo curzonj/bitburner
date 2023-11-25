@@ -168,7 +168,7 @@ export async function main(ns) {
     if (inUse > installed * flagArgs.maxUtil) memoryFactor += 0.01;
 
     if (allTargetsStable() && inUse < installed * flagArgs.minUtil) {
-      if (getConcurrency() > flagArgs.concurrency) {
+      if (getConcurrency() < flagArgs.concurrency || memoryFactor > 1) {
         memoryFactor -= 0.01;
       } else {
         memoryFactor += 0.1
