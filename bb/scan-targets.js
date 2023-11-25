@@ -5,7 +5,7 @@ export async function main(ns) {
   const myLevel = ns.getHackingLevel();
 
   ns.tprint(ns.sprintf(
-    "%(name)' -20s %(levelReq)' 4s %(money)' 10s %(max)' 10s%(hackDifficulty)' 10s%(minDifficulty)' 6s",
+    "%(name)' -20s %(levelReq)' 4s %(money)' 10s %(max)' 10s%(hackDifficulty)' 10s%(minDifficulty)' 10s",
     {
       name: "Name",
       levelReq: "Level",
@@ -29,7 +29,7 @@ export async function main(ns) {
     const minDifficulty = ns.getServerMinSecurityLevel(name);
 
     ns.tprint(ns.sprintf(
-      "%(name)' -20s %(levelReq)' 4.0d %(money)' 10s %(max)' 10s%(hackDifficulty)' 10.3d%(minDifficulty)' 10.3d",
+      "%(name)' -20s %(levelReq)' 4d %(money)' 10s %(max)' 10s%(hackDifficulty)' 10.3f%(minDifficulty)' 10.3f",
       { name, levelReq, money: ns.formatNumber(money), max: ns.formatNumber(maxMoney), hackDifficulty, minDifficulty }
     ));
   }
