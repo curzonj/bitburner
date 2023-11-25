@@ -4,7 +4,7 @@ export async function main(ns) {
     ns.killall(target, true);
   });
     
-  ns.tprint("done");
+  ns.tprint("INFO: done");
 }
 
 async function everyServer(ns, fn) {
