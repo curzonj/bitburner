@@ -139,13 +139,23 @@ export async function main(ns) {
       procs += ns.ps(name).length;
     }
 
-    return { freeMem: freeMem, procs };;
+    const ramBudget = Object.values(memoryBudget)
+      .reduce((acc, num) => acc + num);
+
+    return { freeMem, procs, ramBudget };
   }
 
   async function monitoringLoop() {
     while (true) {
-      const { freeMem, procs } = procStats();
-      ns.print({ freeMem: ns.formatRam(freeMem), procs });
+      const { freeMem, procs, ramBudget } = procStats();
+      ns.print({
+        procs,
+        ratio: freeMem / budget,
+        free: ns.formatRam(freeMem),
+        used: ns.formatRam(getTotalMemoryInUse()),
+        total: ns.formatRam(getTotalMemoryInstalled()),
+        budget: ns.formatRam(ramBudget),
+      });
       await ns.asleep(5000);
     }
   }
