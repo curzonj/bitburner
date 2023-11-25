@@ -7,6 +7,7 @@ export async function main(ns) {
 
   const maxServers = ns.getPurchasedServerLimit();
   const list = ns.getPurchasedServers();
+  const ram = flagArgs.ram;
 
   if (list.length == maxServers) {
     ns.tprint("Deleting server: " + list[0]);
@@ -18,7 +19,7 @@ export async function main(ns) {
     }
   }
 
-  ns.tprint(`${ns.formatRam(ram)} costs ${ns.getPurchasedServerCost(ram)}`);
+  ns.tprint(`${ns.formatRam(ram)} costs ${ns.formatNumber(ns.getPurchasedServerCost(ram))}`);
 
   let i = list.length;
   const myLevel = ns.sprintf("%4d", ns.getHackingLevel());
