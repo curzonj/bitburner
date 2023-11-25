@@ -7,7 +7,7 @@ export async function main(ns) {
     ['trace', false],
     ['tail', false],
     //['grind', false],
-    ['instability', 4],
+    ['unhealthy', 4],
     ['initialCommit', 1.4],
     ['maxUtil', 0.90],
     ['minUtil', 0.85],
@@ -199,37 +199,37 @@ export async function main(ns) {
     return targets.filter(n => ns.getServerRequiredHackingLevel(n) < myLevel/2);
   }
 
-  const unstableCounters = {};
-  function instabilityCheck(name) {
-    unstableCounters[name] ||= 0;
+  const unhealthyCounters = {};
+  function unhealthyCheck(name) {
+    unhealthyCounters[name] ||= 0;
 
     if (isStable(name)) {
-      unstableCounters[name] = 0;
+      unhealthyCounters[name] = 0;
     } else {
-      unstableCounters[name]++;
+      unhealthyCounters[name]++;
     }
 
-    return isUnstable(name);
+    return isUnhealthy(name);
   }
 
-  function isUnstable(name) {
-    return unstableCounters[name] && unstableCounters[name] > flagArgs.instability;
+  function isUnhealthy(name) {
+    return unhealthyCounters[name] && unhealthyCounters[name] > flagArgs.unhealthy;
   }
 
-  function instabilityCount() {
-    return Object.values(unstableCounters).filter(n => n > flagArgs.instability).length;
+  function unhealthyCount() {
+    return Object.values(unhealthyCounters).filter(n => n > flagArgs.unhealthy).length;
   }
 
   function allTargetsStable() {
     const list = activeTargets();
 
-    return list.every(isStable) && !list.some(isUnstable);
+    return list.every(isStable) && !list.some(isUnhealthy);
   }
 
-  function generalInstability() {
+  function allTargetsUnhealthy() {
     const list = activeTargets();
 
-    return list.length > 0 && list.every(n => isUnstable(n) && !isStable(n)) && list.some(isUnstable);
+    return list.length > 0 && list.every(n => isUnhealthy(n) && !isStable(n)) && list.some(isUnhealthy);
   }
 
   let hackPercentage = 0;
@@ -242,7 +242,7 @@ export async function main(ns) {
       return 1;
     }
 
-    if (generalInstability() && !theory) {
+    if (allTargetsUnhealthy() && !theory) {
       return 1;
     }
 
@@ -256,7 +256,7 @@ export async function main(ns) {
     if (memoryFactor <= 2) {
       if (inUse > installed * flagArgs.maxUtil) memoryFactor += 0.01;
       if (inUse > installed * 0.98) memoryFactor += 0.20;
-      if (generalInstability())     memoryFactor += 0.20;
+      if (allTargetsUnhealthy())     memoryFactor += 0.20;
     }
 
     if (allTargetsStable() && inUse < installed * flagArgs.minUtil) {
@@ -291,7 +291,7 @@ export async function main(ns) {
 
       const data = {
         procs,
-        unstable: instabilityCount(),
+        unhealthy: unhealthyCount(),
         factor: memoryFactor,
         steal: hackPercentage,
         concurrency,
@@ -301,7 +301,7 @@ export async function main(ns) {
       };
 
       try {
-        ns.print(ns.sprintf("%(procs)' 5d  mFCSu: %(factor)' 4.2f / %(concurrency)' 6.2f / %(steal)' 5.3f / %(unstable)' 1d  Mem: %(usedPct)' 6s / %(free)' 8s  $ %(earned)' 8s",data));
+        ns.print(ns.sprintf("%(procs)' 5d  mFCSu: %(factor)' 4.2f / %(concurrency)' 6.2f / %(steal)' 5.3f / %(unhealthy)' 1d  Mem: %(usedPct)' 6s / %(free)' 8s  $ %(earned)' 8s",data));
       } catch(e) {
         ns.print("ERROR: ", data);
       }
@@ -446,7 +446,7 @@ export async function main(ns) {
     let hackDifficulty = ns.getServerSecurityLevel(name);
     let minDifficulty = ns.getServerMinSecurityLevel(name);
 
-    instabilityCheck(name);
+    unhealthyCheck(name);
 
     const times = calculateTimes(name);
     const threads = calculateThreads(name);
@@ -467,7 +467,7 @@ export async function main(ns) {
     await ns.asleep(times.growLead);
     await spawnThreads(rpcGrow, threads.grow, name);
 
-    if (isUnstable(name)) {
+    if (isUnhealthy(name)) {
       await ns.asleep(times.growTime + (margin*2));
     } else {
       await ns.asleep(times.hackLead - times.growLead);
