@@ -418,10 +418,11 @@ export async function main(ns) {
     return threads;
   }
 
-  function bootstrapSteal() {
+  async function bootstrapSteal() {
     do {
       hackPercentage += 0.005;
       activeTargets().forEach(calculateThreads);
+      await ns.asleep(10);
     } while(getConcurrency(true) > flagArgs.concurrency);
   }
 
@@ -517,7 +518,7 @@ export async function main(ns) {
   remoteDebugLogging();
   remoteTraceLogging();
   remotePrintLogging();
-  bootstrapSteal();
+  await bootstrapSteal();
 
   monitoringLoop();
 
