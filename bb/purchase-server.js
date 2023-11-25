@@ -1,5 +1,10 @@
 /** @param {NS} ns */
 export async function main(ns) {
+  const flagArgs = ns.flags([
+    ['ram', ns.getPurchasedServerMaxRam()],
+    ['debug', false],
+  ]);
+
   const maxServers = ns.getPurchasedServerLimit();
   const list = ns.getPurchasedServers();
 
@@ -13,26 +18,13 @@ export async function main(ns) {
     }
   }
 
-  const maxRam = ns.getPurchasedServerMaxRam();
-  const money = ns.getServerMoneyAvailable("home");
+  ns.tprint(`${ns.formatRam(ram)} costs ${ns.getPurchasedServerCost(ram)}`);
 
-  let ram = maxRam /* ns.getServerMaxRam("home");
+  let i = list.length;
+  const myLevel = ns.sprintf("%4d", ns.getHackingLevel());
 
-  while (ram < maxRam) {
-    if (ns.getPurchasedServerCost(ram * 2) > money) {
-      break;
-    }
-
-    ram = ram * 2;
+  while (i < maxServers && ns.getPurchasedServerCost(ram) < ns.getServerMoneyAvailable("home")) {
+    ns.purchaseServer(`pserv-${myLevel}-${i++}`, ram);
+    ns.tprint("Purchased server with " + ns.formatRam(ram) + " for ", ns.formatNumber(ns.getPurchasedServerCost(ram)));
   }
-
-  if (ram > maxRam) {
-    ram = maxRam;
-  }*/
-
-
-  const myLevel = ns.getHackingLevel();
-
-  ns.purchaseServer("pserv-"+list.length+"-"+myLevel, ram);
-  ns.tprint("Purchased server with " + ns.formatRam(ram) + " for ", ns.formatNumber(ns.getPurchasedServerCost(ram)));
 }
