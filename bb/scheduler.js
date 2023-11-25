@@ -52,7 +52,7 @@ export async function main(ns) {
   const margin = flagArgs.margin;
   const cpuCores = 1;
   const memoryBudget = {};
-  const memoryBudgetLevel = {};
+  let memoryBudgetLevel = {};
   const memoryUsedElsewhere = getTotalMemoryInUse();
   const selfMemReq = ns.getScriptRam("/bb/scheduler.js");
 
