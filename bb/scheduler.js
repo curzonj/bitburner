@@ -280,9 +280,9 @@ export async function main(ns) {
   const metrics = { moneyEarned: 0 };
   async function monitoringLoop() {
     while (true) {
-      const concurrency = getConcurrency();
       updateTuningParameters();
 
+      const concurrency = getConcurrency();
       const { freeMem, procs } = procStats();
       const money = metrics.moneyEarned;
       metrics.moneyEarned = 0;
