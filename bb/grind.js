@@ -1,4 +1,4 @@
-import { allServers, bestGrindTarget } from 'bb/lib.js'
+import { allServers, validTargets, bestGrindTarget } from 'bb/lib.js'
 
 export async function main(ns) {
   const flagArgs = ns.flags([
@@ -13,10 +13,7 @@ export async function main(ns) {
   if (flagArgs.target.length == 1 && flagArgs.target[0] == 'best') {
     targets = [ bestGrindTarget(ns) ];
   } else if (flagArgs.target.length == 1 && flagArgs.target[0] == 'all') {
-    targets = allServers
-      .filter(s => ns.getServerRequiredHackingLevel(s) < myLevel)
-      .filter(s => !s.startsWith("pserv") && s != 'home')
-      .filter(s => ns.getServerMaxMoney(s) > 1000000);
+    targets = validTargets(ns)
   } else if (flagArgs.target.length > 0) {
     targets = flagArgs.target;
   } else {

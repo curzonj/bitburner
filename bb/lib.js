@@ -21,10 +21,17 @@ export function allServers(ns) {
   return Object.keys(table);
 }
 
+export function validTargets(ns) {
+  let lvl = ns.getHackingLevel();
+  return allServers(ns)
+    .filter(s => ns.getServerMaxMoney(s) > 0)
+    .filter(s => s != "home" && !s.startsWith("pserv"))
+    .filter(s => ns.getServerRequiredHackingLevel(s) < lvl);
+}
+
 export function bestGrindTarget(ns) {
   let lvl = ns.getHackingLevel();
-  let list = allServers(ns)
-    .filter(a => ns.getServerRequiredHackingLevel(a) < lvl)
+  let list = validTargets(ns)
     .sort(function (a, b) {
       const reqA = ns.getServerRequiredHackingLevel(a);
       const reqB = ns.getServerRequiredHackingLevel(b);
