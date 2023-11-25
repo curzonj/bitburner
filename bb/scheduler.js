@@ -6,17 +6,14 @@ export async function main(ns) {
     ['debug', false],
     ['trace', false],
     ['tail', false],
-    ['grind', false],
+    //['grind', false],
     ['instability', 4],
     ['initialCommit', 1.4],
-    ['minCommit', 0.6],
     ['maxUtil', 0.90],
     ['minUtil', 0.85],
     ['concurrency', 20],
     ['margin',200],
     ['reserved', 10],
-    ['steal', 0.02],
-    ['memoryOversubscription', 0.2],
     ['target', []],
   ]);
 
@@ -235,9 +232,9 @@ export async function main(ns) {
     return list.length > 0 && list.every(n => isUnstable(n) && !isStable(n)) && list.some(isUnstable);
   }
 
-  let hackPercentage = flagArgs.steal;
+  let hackPercentage = 0;
   let memoryFactor = flagArgs.initialCommit;
-  function getConcurrency() {
+  function getConcurrency(theory=false) {
     const installed = getTotalMemoryInstalled();
     let budget = getTotalBudget();
 
@@ -245,7 +242,7 @@ export async function main(ns) {
       return 1;
     }
 
-    if (generalInstability()) {
+    if (generalInstability() && !theory) {
       return 1;
     }
 
@@ -413,9 +410,14 @@ export async function main(ns) {
       ns.tprint(ns.sprintf("ERROR: Failed to build budget for %s", name));
     }
 
-    // TODO limit the number of threads if the server is unstable
-
     return threads;
+  }
+
+  function bootstrapSteal() {
+    do {
+      hackPercentage += 0.005;
+      activeTargets().forEach(calculateThreads);
+    } while(getConcurrency(true) > flagArgs.concurrency);
   }
 
   function calculateTimes(name) {
@@ -478,6 +480,7 @@ export async function main(ns) {
     }
   }
 
+  /*
   function calcGrindingThreads() {
     const memCommitted = Object.keys(memoryBudget).reduce(function (acc, name) {
       const num = memoryBudget[name];
@@ -503,21 +506,21 @@ export async function main(ns) {
       await ns.asleep(time + margin);
     }
   }
+  */
 
   accounting();
   remoteDebugLogging();
   remoteTraceLogging();
   remotePrintLogging();
+  bootstrapSteal();
+
   monitoringLoop();
 
   // Let the monitoring loops get started
   await ns.asleep(10);
 
-  // main body
-  activeTargets().forEach(calculateThreads);
-
   await Promise.all([
     targets.map(loop),
-    flagArgs.grind ? grindHackingExperience() : [],
+//    flagArgs.grind ? grindHackingExperience() : [],
   ].flat());
 }
