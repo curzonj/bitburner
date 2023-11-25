@@ -149,7 +149,7 @@ export async function main(ns) {
     return Object.values(memoryBudget).reduce((acc, num) => acc + num, 0);
   }
 
-  let memoryFactor = flagArgs.memoryFactor;
+  let memoryFactor = flagArgs.initialCommit;
   function getConcurrency() {
     const ramBudget = getTotalBudget();
     const installed = getTotalMemoryInstalled();
@@ -182,7 +182,7 @@ export async function main(ns) {
       const data = {
         procs,
         factor: memoryFactor,
-        ratio: (inUse / ramBudget),
+        ratio: inUse / (ramBudget * concurrency),
         free: ns.formatRam(freeMem),
         used: ns.formatRam(inUse),
         total: ns.formatRam(installed),
