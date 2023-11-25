@@ -178,10 +178,14 @@ export async function main(ns) {
   let hackPercentage = flagArgs.steal;
   let memoryFactor = flagArgs.initialCommit;
   function getConcurrency() {
-    const ramBudget = getTotalBudget();
     const installed = getTotalMemoryInstalled();
+    let budget = getTotalBudget();
 
-    return (installed / (ramBudget * memoryFactor)) || 1;
+    if (budget < 1 || budget == null || !isFinite(budget) || isNaN(budget)) {
+      return 1;
+    }
+
+    return (installed / (budget * memoryFactor));
   }
 
   function updateTuningParameters() {
