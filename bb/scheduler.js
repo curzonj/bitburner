@@ -424,7 +424,7 @@ export async function main(ns) {
       hackPercentage += 0.005;
       activeTargets().forEach(calculateThreads);
       ns.print(`${i++} Bootstrap params: `, { current: getConcurrency(true), target: flagArgs.concurrency, hackPercentage });
-      await ns.asleep(10);
+      await ns.sleep(10);
     } while(getConcurrency(true) > flagArgs.concurrency);
   }
 
@@ -516,11 +516,12 @@ export async function main(ns) {
   }
   */
 
+  await bootstrapSteal();
+
   accounting();
   remoteDebugLogging();
   remoteTraceLogging();
   remotePrintLogging();
-  await bootstrapSteal();
 
   monitoringLoop();
 
