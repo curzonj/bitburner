@@ -5,10 +5,11 @@ export async function main(ns) {
     ['home', false],
     ['debug', false],
     ['trace', false],
-    ['once', false],
     ['tail', false],
     ['reserved', 0],
-    ['target', ''],
+    ['memoryOversubscription', 0.2],
+    ['concurrency', 2],
+    ['target', []],
   ]);
 
   if (flagArgs.trace) {
@@ -63,7 +64,6 @@ export async function main(ns) {
   }
 
   const reservedMemory = flagArgs.reserved;
-  const memoryOversubscription = 0.2;
   const margin = 200;
   const cpuCores = flagArgs.home ? home.cpuCores : 1;
   const memoryBudget = {};
@@ -223,7 +223,7 @@ export async function main(ns) {
     }
 
     const myLevel = ns.getHackingLevel();
-    while (ns.getServerRequiredHackingLevel(name) > myLevel) {
+    while (ns.getServerRequiredHackingLevel(name) > myLevel/2) {
       await ns.asleep(60000);
     }
 
@@ -236,9 +236,8 @@ export async function main(ns) {
         nextSleep += ns.getWeakenTime(name);
       }
 
-      const concurrentBatches = 2
       const batchLength = ns.getWeakenTime(name) + (margin * 4);
-      nextSleep = Math.max(nextSleep, batchLength / concurrentBatches);
+      nextSleep = Math.max(nextSleep, batchLength / flagArgs.concurrency);
 
       let prom = batch(batchID++, name);
       if (flagArgs.once) {
@@ -388,7 +387,7 @@ export async function main(ns) {
     }, 0);
     const totalMem = getTotalMemoryInstalled();
     const memRequired = rpcMemReqs[rpcWeaken];
-    return (totalMem - (memCommitted * (1 - memoryOversubscription))) / memRequired;
+    return (totalMem - (memCommitted * (1 - flagArgs.memoryOversubscription))) / memRequired;
   }
 
   async function grindHackingExperience() {
@@ -417,19 +416,12 @@ export async function main(ns) {
   await ns.asleep(10);
 
   // main body
-  if (flagArgs.target != "") {
-    await loop(flagArgs.target);
-    ns.print("done");
-  } else if (flagArgs.once) {
-    ns.tprint("error: once requires a target");
-    return
-  } else {
-    await Promise.all([
-      Object.keys(servers).map(function (name) {
-        calculateThreads(name);
-        return loop(name);
-      }),
-      grindHackingExperience(),
-    ].flat());
-  }
+  const targets = flagArgs.target.length > 0 ? flagArgs.target : Object.keys(servers);
+  await Promise.all([
+    targets.map(function (name) {
+      calculateThreads(name);
+      return loop(name);
+    }),
+    grindHackingExperience(),
+  ].flat());
 }
