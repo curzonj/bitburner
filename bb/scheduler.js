@@ -9,6 +9,7 @@ export async function main(ns) {
     ['trace', false],
     ['tail', false],
     ['grind', false],
+    ['prepThresh', 1.10],
     ['margin',200],
     ['reserved', 0],
     ['steal', 0.4],
@@ -221,7 +222,7 @@ export async function main(ns) {
       let s = ns.getServer(name);
       let nextSleep = margin * 4;
 
-      if (s.hackDifficulty > (s.minDifficulty * 1.01)) {
+      if (s.hackDifficulty > (s.minDifficulty * flagArgs.prepThresh)) {
         nextSleep += ns.getWeakenTime(name);
       }
 
@@ -262,13 +263,14 @@ export async function main(ns) {
       grow: Math.ceil(ns.growthAnalyze(name, growthFactor, cpuCores)),
     }
 
+    const extraDifficulty = hackDifficulty - minDifficulty;
     const growthAnalyze = ns.growthAnalyzeSecurity(threads.grow, undefined, cpuCores);
     const weakenAnalyze = ns.weakenAnalyze(1, cpuCores);
     const hackAnalyze = ns.hackAnalyzeSecurity(threads.hack, name);
 
     threads.growWeaken = Math.ceil(growthAnalyze / weakenAnalyze);
-    threads.hackWeaken = Math.ceil(hackAnalyze / weakenAnalyze)
-    threads.prepWeaken = Math.ceil((hackDifficulty - minDifficulty) / weakenAnalyze);
+    threads.hackWeaken = Math.ceil((hackAnalyze+extraDifficulty) / weakenAnalyze)
+    threads.prepWeaken = Math.ceil(extraDifficulty / weakenAnalyze);
 
     const budget = (
       rpcMemReqs[rpcWeaken] * threads.prepWeaken +
@@ -325,7 +327,7 @@ export async function main(ns) {
       log('threads', threads);
       log("start", stats);
     }
-    if (s.hackDifficulty > (s.minDifficulty * 1.01)) {
+    if (s.hackDifficulty > (s.minDifficulty * flagArgs.prepThresh)) {
       await spawnThreads(rpcWeaken, threads.prepWeaken, name);
       ns.print(ns.sprintf("weakening %s for %s", name, ns.tFormat(times.weakenTime)));
       await ns.asleep(times.weakenTime + margin);
