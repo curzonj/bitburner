@@ -187,25 +187,21 @@ export async function main(ns) {
       const money = metrics.moneyEarned;
       metrics.moneyEarned = 0;
 
-      const ramBudget = getTotalBudget();
       const inUse = getTotalMemoryInUse();
       const installed = getTotalMemoryInstalled();
 
       const data = {
         procs,
         factor: memoryFactor,
+        steal: hackPercentage,
         concurrency,
-        ratio: inUse / (ramBudget * concurrency),
         free: ns.formatRam(freeMem),
-        used: ns.formatRam(inUse),
-        total: ns.formatRam(installed),
         usedPct: ns.formatPercent(inUse / installed),
-        budget: ns.formatRam(ramBudget),
         earned: ns.formatNumber(money),
       };
 
       try {
-        ns.print(ns.sprintf("%(procs)' 5d   mFc: %(factor)' 5.2f / %(ratio)' 5.2f / %(concurrency)' 2.2f  Budget: %(budget)' 8s  Used: %(usedPct)' 8s  Free: %(free)' 8s  $ %(earned)' 8s",data));
+        ns.print(ns.sprintf("P: %(procs)' 5d  mFCS: %(factor)' 5.2f / %(concurrency)' 5.2f / %(steal)' 5.3f  Mem: %(usedPct)' 6s / %(free)' 8s  $ %(earned)' 8s",data));
       } catch(e) {
         ns.print("ERROR: ", data);
       }
