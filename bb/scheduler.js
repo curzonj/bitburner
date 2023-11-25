@@ -230,7 +230,20 @@ export async function main(ns) {
   }
 
   function generalInstability() {
-    return activeTargets().every(n => isUnstable(n) && !isStable(n));
+    const list = activeTargets();
+    const unstable = list.every(n => isUnstable(n) && !isStable(n));
+    const stable = allTargetsStable();
+
+    if (unstable && stable) {
+      const data = list.reduce((acc, n) => {
+        acc[n] = { u: isUnstable(n), s: isStable(n) };
+        return acc;
+      }, {});
+
+      ns.print("WARNING: ", data, { stable,  unstable });
+    }
+
+    return unstable;
   }
 
   let hackPercentage = flagArgs.steal;
