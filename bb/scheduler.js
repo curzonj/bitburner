@@ -7,6 +7,7 @@ export async function main(ns) {
     ['trace', false],
     ['tail', false],
     ['reserved', 0],
+    ['steal', 0.4],
     ['memoryOversubscription', 0.2],
     ['concurrency', 2],
     ['target', []],
@@ -264,8 +265,8 @@ export async function main(ns) {
     const minDifficulty = ns.getServerMinSecurityLevel(name);
 
     const growFirst = moneyAvailable < moneyMax * 0.95;
-    const hackPercentage = 0.4;
-    let growthFactor = (1 / (1 - hackPercentage - 0.05));
+    const hackPercentage = flagArgs.steal;
+    let growthFactor = (1 / (1 - (hackPercentage * 1.125)));
     if (growFirst) {
       growthFactor = moneyMax / Math.max(moneyAvailable, 1);
     }
