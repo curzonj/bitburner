@@ -8,6 +8,7 @@ export async function main(ns) {
     ['debug', false],
     ['trace', false],
     ['tail', false],
+    ['grind', false],
     ['reserved', 0],
     ['steal', 0.4],
     ['memoryOversubscription', 0.2],
@@ -392,6 +393,6 @@ export async function main(ns) {
       calculateThreads(name);
       return loop(name);
     }),
-    grindHackingExperience(),
+    flagArgs.grind ? grindHackingExperience() : [],
   ].flat());
 }
