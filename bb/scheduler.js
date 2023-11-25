@@ -182,6 +182,37 @@ export async function main(ns) {
     }
   }
 
+  function isStable(name) {
+    const moneyMax = ns.getServerMaxMoney(name);
+    const moneyAvailable = ns.getServerMoneyAvailable(name);
+    const hackDifficulty = ns.getServerSecurityLevel(name);
+    const minDifficulty = ns.getServerMinSecurityLevel(name);
+
+    return (moneyAvailable > (moneyMax * 0.9) && hackDifficulty < (minDifficulty * 1.1));
+  }
+
+  function allTargetsStable() {
+    return activeTargets().every(isStable);
+  }
+
+  function activeTargets() {
+    const myLevel = ns.getHackingLevel();
+    return targets.filter(n => ns.getServerRequiredHackingLevel(n) > myLevel/2);
+  }
+
+  const unstableCounters = {};
+  function instability(name) {
+    unstableCounters[name] ||= 0;
+
+    if (isStable(name)) {
+      unstableCounters[name] = 0;
+    } else {
+      unstableCounters[name]++;
+    }
+
+    return unstableCounters[name];
+  }
+
   const metrics = { moneyEarned: 0 };
   async function monitoringLoop() {
     while (true) {
@@ -194,9 +225,12 @@ export async function main(ns) {
 
       const inUse = getTotalMemoryInUse();
       const installed = getTotalMemoryInstalled();
+      const unstableCount = Object.values(unstableCounters)
+        .filter(n => n > flagArgs.instability).length;
 
       const data = {
         procs,
+        unstable: unstableCount,
         factor: memoryFactor,
         steal: hackPercentage,
         concurrency,
@@ -206,7 +240,7 @@ export async function main(ns) {
       };
 
       try {
-        ns.print(ns.sprintf("%(procs)' 5d  mFCS: %(factor)' 5.2f / %(concurrency)' 5.2f / %(steal)' 5.3f  Mem: %(usedPct)' 6s / %(free)' 8s  $ %(earned)' 8s",data));
+        ns.print(ns.sprintf("%(procs)' 5d  mFCSu: %(factor)' 5.2f / %(concurrency)' 5.2f / %(steal)' 5.3f / %(unstable)' 1d  Mem: %(usedPct)' 6s / %(free)' 8s  $ %(earned)' 8s",data));
       } catch(e) {
         ns.print("ERROR: ", data);
       }
@@ -256,37 +290,6 @@ export async function main(ns) {
         ns.print(data);
       }
     });
-  }
-
-  function isStable(name) {
-    const moneyMax = ns.getServerMaxMoney(name);
-    const moneyAvailable = ns.getServerMoneyAvailable(name);
-    const hackDifficulty = ns.getServerSecurityLevel(name);
-    const minDifficulty = ns.getServerMinSecurityLevel(name);
-
-    return (moneyMax == moneyAvailable && hackDifficulty == minDifficulty);
-  }
-
-  function allTargetsStable() {
-    return activeTargets().every(isStable);
-  }
-
-  function activeTargets() {
-    const myLevel = ns.getHackingLevel();
-    return targets.filter(n => ns.getServerRequiredHackingLevel(n) > myLevel/2);
-  }
-
-  const unstable = {};
-  function instability(name) {
-    unstable[name] ||= 0;
-
-    if (isStable(name)) {
-      unstable[name] = 0;
-    } else {
-      unstable[name]++;
-    }
-
-    return unstable[name];
   }
 
   async function loop(name) {
@@ -412,7 +415,6 @@ export async function main(ns) {
     await spawnThreads(rpcGrow, threads.grow, name);
 
     if (instability(name) > flagArgs.instability) {
-      ns.print(ns.sprintf("WARNING: %s is unstable, skipping hack", name));
       await ns.asleep(times.growTime + (margin*2));
     } else {
       await ns.asleep(times.hackLead - times.growLead);
