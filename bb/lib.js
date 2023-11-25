@@ -20,3 +20,16 @@ export function allServers(ns) {
 
   return Object.keys(table);
 }
+
+export function bestGrindTarget(ns) {
+  let lvl = ns.getHackingLevel();
+  let list = allServers(ns)
+    .filter(a => ns.getServerRequiredHackingLevel(a) < lvl)
+    .sort(function (a, b) {
+      const reqA = ns.getServerRequiredHackingLevel(a);
+      const reqB = ns.getServerRequiredHackingLevel(b);
+
+      return ((lvl - reqB) / lvl) - ((lvl - reqA) / lvl);
+    });
+  return list[0];
+}

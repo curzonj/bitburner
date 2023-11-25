@@ -17,6 +17,7 @@ export async function main(ns) {
     ns.disableLog("disableLog");
     ns.disableLog("scan");
     ns.disableLog("scp");
+    ns.disableLog("getServerRequiredHackingLevel");
   } else {
     ns.disableLog("ALL");
   }
