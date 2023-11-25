@@ -251,16 +251,15 @@ export async function main(ns) {
     const hackDifficulty = ns.getServerSecurityLevel(name);
     const minDifficulty = ns.getServerMinSecurityLevel(name);
 
-    const growFirst = moneyAvailable < moneyMax * 0.95;
     const hackPercentage = flagArgs.steal;
-    let growthFactor = (1 / (1 - (hackPercentage * 1.25)));
-    if (growFirst) {
-      growthFactor = moneyMax / Math.max(moneyAvailable, 1);
-    }
+    let growthFactor = Math.max(
+      (1 / (1 - (hackPercentage * 1.25))),
+      moneyMax / Math.max(moneyAvailable, 1)
+    );
 
     const threads = {
       hack: Math.ceil(hackPercentage / ns.hackAnalyze(name)),
-      grow: Math.min(maxHomeThreads, Math.ceil(ns.growthAnalyze(name, growthFactor, cpuCores))),
+      grow: Math.ceil(ns.growthAnalyze(name, growthFactor, cpuCores)),
     }
 
     const growthAnalyze = ns.growthAnalyzeSecurity(threads.grow, undefined, cpuCores);
@@ -330,12 +329,6 @@ export async function main(ns) {
       await spawnThreads(rpcWeaken, threads.prepWeaken, name);
       ns.print(ns.sprintf("weakening %s for %s", name, ns.tFormat(times.weakenTime)));
       await ns.asleep(times.weakenTime + margin);
-    } else if (s.moneyAvailable < s.moneyMax * 0.95) {
-      await spawnThreads(rpcWeaken, threads.growWeaken, name);
-      await ns.asleep(times.growLead);
-      await spawnThreads(rpcGrow, threads.grow, name);
-      await ns.asleep(times.growTime + (margin * 2));
-      ns.print(ns.sprintf("growing %s for %s", name, ns.tFormat(times.weakenTime)));
     } else {
       await spawnThreads(rpcWeaken, threads.hackWeaken, name);
       await ns.asleep(margin * 2);
