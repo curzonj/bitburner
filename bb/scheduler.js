@@ -51,7 +51,7 @@ export async function main(ns) {
   const reservedMemory = flagArgs.reserved;
   const margin = flagArgs.margin;
   const cpuCores = 1;
-  const memoryBudget = {};
+  let memoryBudget = {};
   let memoryBudgetLevel = {};
   const memoryUsedElsewhere = getTotalMemoryInUse();
   const selfMemReq = ns.getScriptRam("/bb/scheduler.js");
@@ -272,8 +272,9 @@ export async function main(ns) {
         hackPercentage += ((installed - inUse) / (installed * 100));
 
         // Update the budgets because it'll change when stealing more
+        memoryBudget = {};
         memoryBudgetLevel = {};
-        Object.keys(memoryBudget).forEach(calculateThreads);
+        activeTargets().forEach(calculateThreads);
       }
     }
   }
@@ -513,7 +514,7 @@ export async function main(ns) {
   await ns.asleep(10);
 
   // main body
-  targets.forEach(calculateThreads);
+  activeTargets().forEach(calculateThreads);
 
   await Promise.all([
     targets.map(loop),
