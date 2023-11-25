@@ -92,7 +92,9 @@ export async function main(ns) {
       return false;
     }
 
+    const myLevel = ns.getHackingLevel();
     if (isOptimal(name)) memoryBudgetLevel[name] = myLevel;
+
     memoryBudget[name] = Math.ceil(budget);
     return true;
   }
