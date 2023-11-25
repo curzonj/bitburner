@@ -154,7 +154,7 @@ export async function main(ns) {
     const ramBudget = getTotalBudget();
     const installed = getTotalMemoryInstalled();
 
-    return installed / (ramBudget * memoryFactor);
+    return (installed / (ramBudget * memoryFactor)) || 1;
   }
 
   function updateMemoryFactor() {
@@ -184,7 +184,7 @@ export async function main(ns) {
         {
           procs,
           factor: memoryFactor,
-          ratio: (inUse / ramBudget) / concurrency,
+          ratio: ((inUse / ramBudget) / concurrency),
           free: ns.formatRam(freeMem),
           used: ns.formatRam(inUse),
           total: ns.formatRam(installed),
