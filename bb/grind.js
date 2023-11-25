@@ -46,7 +46,7 @@ export async function main(ns) {
       const freeMem = ns.getServerMaxRam(worker) - ns.getServerUsedRam(worker);
       const threads = Math.min(remaining, Math.floor(freeMem / reqMem));
       remaining -= threads;
-      ns.exec(script, worker, threads, target);
+      if (threads > 0) ns.exec(script, worker, threads, target);
     }
   }
 }
