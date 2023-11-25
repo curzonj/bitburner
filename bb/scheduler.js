@@ -1,14 +1,13 @@
 /** @param {NS} ns */
 export async function main(ns) {
   const homeMaxRam = ns.getServerMaxRam("home");
-  const reservedMemoryDefault = ns.getScriptRam("/bb/scheduler.js");
   const flagArgs = ns.flags([
     ['home', false],
     ['debug', false],
     ['trace', false],
     ['once', false],
     ['tail', false],
-    ['reserved', reservedMemoryDefault],
+    ['reserved', 0],
     ['target', ''],
   ]);
 
@@ -69,8 +68,9 @@ export async function main(ns) {
   const cpuCores = flagArgs.home ? home.cpuCores : 1;
   const memoryBudget = {};
   const memoryUsedElsewhere = getTotalMemoryInUse();
+  const selfMemReq = ns.getScriptRam("/bb/scheduler.js");
 
-  if (memoryUsedElsewhere > reservedMemory) {
+  if (memoryUsedElsewhere > (reservedMemory+selfMemReq)) {
     ns.tprint("Too much memory used elsewhere ", ns.formatRam(memoryUsedElsewhere));
     ns.exit();
   }
