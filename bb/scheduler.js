@@ -166,7 +166,7 @@ export async function main(ns) {
   async function monitoringLoop() {
     while (true) {
       updateMemoryFactor();
-      const { freeMem, procs, ramBudget } = procStats();
+      const { freeMem, procs } = procStats();
       const money = metrics.moneyEarned;
       metrics.moneyEarned = 0;
 
