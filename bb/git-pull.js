@@ -22,15 +22,14 @@ export async function main(ns) {
   $.options = ns.flags(argsSchema);
   $.ref = ns.args[0] || $.options.ref;
 
-  const filesToDownload = $.options.file.length > 0 ? $.options.file : await repositoryListing($.options.path);
-
   const baseUrl = `raw.githubusercontent.com/${$.options.github}/${$.options.repository}/${$.ref}/`;
-  for (const path of filesToDownload) {
+  const files = $.options.file.length > 0 ? $.options.file : await repositoryListing($.options.path);
+
+  await Promise.all(files.map(path => {
     const url = `https://${baseUrl}/${path}`;
-    if (!await ns.wget(url, path)) {
-      ns.tprint(`Failed to download ${path}`);
-    }
-  }
+    return ns.wget(url, path).catch(e => ns.tprint(`Failed to download ${path}`));
+  });
+
   ns.tprint(`INFO: Pull complete.`);
 }
 
