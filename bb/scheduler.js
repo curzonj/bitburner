@@ -158,7 +158,7 @@ export async function main(ns) {
           total: ns.formatRam(getTotalMemoryInstalled()),
           budget: ns.formatRam(ramBudget),
         }
-      );
+      ));
       await ns.asleep(5000);
     }
   }
