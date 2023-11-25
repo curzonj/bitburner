@@ -433,6 +433,9 @@ export async function main(ns) {
   async function bootstrapParameters() {
     let i=0;
     do {
+      // Make sure the budget doesn't get locked
+      memoryBudgetLevel = {};
+
       hackPercentage += 0.005;
       activeTargets().forEach(calculateThreads);
 
