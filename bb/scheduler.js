@@ -1,3 +1,5 @@
+import { allServers, validTargets, bestGrindTarget } from 'bb/lib.js'
+
 /** @param {NS} ns */
 export async function main(ns) {
   const homeMaxRam = ns.getServerMaxRam("home");
@@ -24,34 +26,13 @@ export async function main(ns) {
   }
 
   const home = ns.getServer("home");
-  const servers = (function () {
-    const table = { "home": home };
-    const queue = ["home"];
-
-    while (queue.length > 0) {
-      let source = queue.pop();
-      let list = ns.scan(source);
-
-      for (var i in list) {
-        let target = list[i];
-
-        if (table[target]) {
-          continue;
-        }
-
-        table[target] = ns.getServer(target);
-        queue.push(target);
-      }
-    }
-
-    for (var name in table) {
-      if (!table[name].hasAdminRights) {
-        delete table[name];
-      }
-    }
-
-    return table;
-  })();
+  const servers = allServers(ns)
+    .map(s => ns.getServer(s))
+    .filter(s => s.hasAdminRights)
+    .reduce((acc, s) => {
+      acc[s.hostname] = s;
+      return acc;
+    }, {});
 
   function getTotalMemoryInUse() {
     return Object.keys(servers).reduce(function (acc, name) {
@@ -145,6 +126,10 @@ export async function main(ns) {
       }
 
       remaining -= localThreads;
+      if (arg == "home") {
+        // trigger a stacktrace
+        localThreads = -1;
+      }
       ns.exec(rpc, name, localThreads, arg);
     }
 
@@ -366,22 +351,6 @@ export async function main(ns) {
     }
   }
 
-  function bestGrindTarget() {
-    let lvl = ns.getHackingLevel();
-    let list = Object.keys(servers).
-      filter(function (a) {
-        const srvLvl = ns.getServerRequiredHackingLevel(a)
-        return srvLvl < lvl;
-      }).
-      sort(function (a, b) {
-        const reqA = ns.getServerRequiredHackingLevel(a);
-        const reqB = ns.getServerRequiredHackingLevel(b);
-
-        return ((lvl - reqB) / lvl) - ((lvl - reqA) / lvl);
-      });
-    return list[0];
-  }
-
   function calcGrindingThreads() {
     const memCommitted = Object.keys(memoryBudget).reduce(function (acc, name) {
       const num = memoryBudget[name];
@@ -394,7 +363,6 @@ export async function main(ns) {
 
   async function grindHackingExperience() {
     while (true) {
-      // TODO grinding isn't finding a target in the early game
       let target = bestGrindTarget();
       let threads = calcGrindingThreads();
       let time = ns.getWeakenTime(target);
@@ -418,7 +386,7 @@ export async function main(ns) {
   await ns.asleep(10);
 
   // main body
-  const targets = flagArgs.target.length > 0 ? flagArgs.target : Object.keys(servers);
+  const targets = flagArgs.target.length > 0 ? flagArgs.target : validTargets(ns);
   await Promise.all([
     targets.map(function (name) {
       calculateThreads(name);
