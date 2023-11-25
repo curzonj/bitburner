@@ -224,14 +224,13 @@ export async function main(ns) {
   }
 
   function allTargetsStable() {
-    return activeTargets().every(isStable);
+    const list = activeTargets();
+
+    return list.every(isStable) && !list.some(isUnstable);
   }
 
   function generalInstability() {
-    // Just a sanity check
-    if (allTargetsStable()) return false;
-
-    return activeTargets().every(isUnstable);
+    return activeTargets().every(n => isUnstable(n) && !isStable(n));
   }
 
   let hackPercentage = flagArgs.steal;
