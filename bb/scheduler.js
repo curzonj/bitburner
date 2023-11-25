@@ -201,7 +201,7 @@ export async function main(ns) {
       };
 
       try {
-        ns.print(ns.sprintf("P: %(procs)' 5d  mFCS: %(factor)' 5.2f / %(concurrency)' 5.2f / %(steal)' 5.3f  Mem: %(usedPct)' 6s / %(free)' 8s  $ %(earned)' 8s",data));
+        ns.print(ns.sprintf("%(procs)' 5d  mFCS: %(factor)' 5.2f / %(concurrency)' 5.2f / %(steal)' 5.3f  Mem: %(usedPct)' 6s / %(free)' 8s  $ %(earned)' 8s",data));
       } catch(e) {
         ns.print("ERROR: ", data);
       }
