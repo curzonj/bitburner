@@ -182,6 +182,7 @@ export async function main(ns) {
       const data = {
         procs,
         factor: memoryFactor,
+        concurrency,
         ratio: inUse / (ramBudget * concurrency),
         free: ns.formatRam(freeMem),
         used: ns.formatRam(inUse),
@@ -192,7 +193,7 @@ export async function main(ns) {
       };
 
       try {
-        ns.print(ns.sprintf("%(procs)' 5d   Calc: %(factor)' 5.2f   Obs: %(ratio)' 5.2f  Budget: %(budget)' 8s  Used: %(used)' 8s  %(usedPct)' 8s  Free: %(free)' 8s  Max: %(total)' 8s  $ %(earned)' 8s",data));
+        ns.print(ns.sprintf("%(procs)' 5d   mFc: %(factor)' 5.2f / %(ratio)' 5.2f / %(concurrency)' 2.2f  Budget: %(budget)' 8s  Used: %(usedPct)' 8s  Free: %(free)' 8s  $ %(earned)' 8s",data));
       } catch(e) {
         ns.print("ERROR: ", data);
       }
