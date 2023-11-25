@@ -173,6 +173,10 @@ export async function main(ns) {
       } else {
         memoryFactor += 0.1
         hackPercentage += 0.001;
+
+        // Update the budgets because it'll change when stealing more
+        memoryBudgetLevel = {};
+        Object.keys(memoryBudget).forEach(calculateThreads);
       }
     }
   }
