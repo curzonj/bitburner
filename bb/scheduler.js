@@ -151,7 +151,10 @@ export async function main(ns) {
     if (remaining < 1) {
       return true;
     } else {
-      ns.print("ERROR: spawn failed ", { rpc, threads, remaining, arg, required: ns.formatRam(memRequired), free: ns.formatRam(freeMem) });
+      if (flagArgs.debug) {
+        ns.print("ERROR: spawn failed ", { rpc, threads, remaining, arg, required: ns.formatRam(memRequired), free: ns.formatRam(freeMem) });
+      }
+
       return false;
     }
   }
