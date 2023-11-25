@@ -121,7 +121,7 @@ export async function main(ns) {
     for (var i in pool) {
       var name = pool[i];
       let maxRam = ns.getServerMaxRam(name);
-      const ramUsed = ns.getServerMaxRam(name);
+      let ramUsed = ns.getServerUsedRam(name);
 
       if (name == "home") {
         maxRam -= reservedMemory;
