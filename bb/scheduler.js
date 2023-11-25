@@ -7,8 +7,11 @@ export async function main(ns) {
     ['trace', false],
     ['tail', false],
     ['grind', false],
-    ['memoryFactor', 1.4],
-    ['prepThresh', 1.10],
+    ['initialCommit', 1.4],
+    ['minCommit', 0.6],
+    ['prepThresh', 1.20],
+    ['maxUtil', 0.90],
+    ['minUtil', 0.85],
     ['margin',200],
     ['reserved', 0],
     ['steal', 0.4],
@@ -158,14 +161,16 @@ export async function main(ns) {
     const inUse = getTotalMemoryInUse();
     const installed = getTotalMemoryInstalled();
 
-    if (inUse > installed * 0.95) memoryFactor += 0.01;
-    if (inUse < installed * 0.90 && memoryFactor > 0.5) memoryFactor -= 0.01;
+    if (inUse > installed * flagArgs.maxUtil) memoryFactor += 0.01;
+    if (inUse < installed * flagArgs.minUtil && memoryFactor > flagArgs.minCommit) memoryFactor -= 0.01;
   }
 
   const metrics = { moneyEarned: 0 };
   async function monitoringLoop() {
     while (true) {
+      const concurrency = getConcurrency();
       updateMemoryFactor();
+
       const { freeMem, procs } = procStats();
       const money = metrics.moneyEarned;
       metrics.moneyEarned = 0;
@@ -179,7 +184,7 @@ export async function main(ns) {
         {
           procs,
           factor: memoryFactor,
-          ratio: inUse / ramBudget,
+          ratio: (inUse / ramBudget) / concurrency,
           free: ns.formatRam(freeMem),
           used: ns.formatRam(inUse),
           total: ns.formatRam(installed),
