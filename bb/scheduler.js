@@ -234,6 +234,7 @@ export async function main(ns) {
 
   let hackPercentage = 0;
   let memoryFactor = flagArgs.initialCommit;
+  let maxConcurrency = 1;
   function getConcurrency(theory=false) {
     const installed = getTotalMemoryInstalled();
     let budget = getTotalBudget();
@@ -242,11 +243,12 @@ export async function main(ns) {
       return 1;
     }
 
-    if (allTargetsUnhealthy() && !theory) {
-      return 1;
-    }
+    const calc = installed / (budget * memoryFactor);
 
-    return Math.max(installed / (budget * memoryFactor), 1);
+    if (theory) return calc;
+    if (allTargetsUnhealthy()) return 1;
+
+    return Math.max(Math.min(calc, maxConcurrency), 1);
   }
 
   function updateTuningParameters() {
@@ -260,6 +262,9 @@ export async function main(ns) {
     }
 
     if (allTargetsStable() && inUse < installed * flagArgs.minUtil) {
+      // Slow start to avoid over hacking
+      if (maxConcurrency < flagArgs.concurrency*10) maxConcurrency++;
+
       if (getConcurrency() < flagArgs.concurrency || memoryFactor > 1) {
         memoryFactor -= 0.01;
       } else {
