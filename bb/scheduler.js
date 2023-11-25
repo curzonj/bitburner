@@ -423,8 +423,8 @@ export async function main(ns) {
     do {
       hackPercentage += 0.005;
       activeTargets().forEach(calculateThreads);
+      ns.print(`${i++} Bootstrap params: `, { current: getConcurrency(true), target: flagArgs.concurrency, hackPercentage });
       await ns.asleep(10);
-      ns.tprint(`${i++} Bootstrap params: `, { current: getConcurrency(true), target: flagArgs.concurrency, hackPercentage });
     } while(getConcurrency(true) > flagArgs.concurrency);
   }
 
