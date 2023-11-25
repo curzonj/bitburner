@@ -23,8 +23,6 @@ export async function main(ns) {
     targets = [ bestGrindTarget(ns) ];
   }
 
-  ns.tprint("Spawning workers, please wait...");
-
   const workers = allServers(ns)
     .filter(s => ns.hasRootAccess(s));
   const totalThreads = workers.reduce((acc, name) => {
