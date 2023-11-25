@@ -11,7 +11,7 @@ export async function main(ns) {
     ['initialCommit', 1.4],
     ['maxUtil', 0.90],
     ['minUtil', 0.85],
-    ['concurrency', 20],
+    ['concurrency', 40],
     ['margin',200],
     ['reserved', 10],
     ['target', []],
