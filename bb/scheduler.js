@@ -7,12 +7,12 @@ export async function main(ns) {
     ['trace', false],
     ['tail', false],
     ['grind', false],
+    ['memoryFactor', 1.4],
     ['prepThresh', 1.10],
     ['margin',200],
     ['reserved', 0],
     ['steal', 0.4],
     ['memoryOversubscription', 0.2],
-    ['concurrency', 2],
     ['target', []],
   ]);
 
@@ -139,27 +139,51 @@ export async function main(ns) {
       procs += ns.ps(name).length;
     }
 
-    const ramBudget = Object.values(memoryBudget)
-      .reduce((acc, num) => acc + num, 0);
+    return { freeMem, procs };
+  }
 
-    return { freeMem, procs, ramBudget };
+  function totalBudget() {
+    return Object.values(memoryBudget).reduce((acc, num) => acc + num, 0);
+  }
+
+  let memoryFactor = flagArgs.memoryFactor;
+  function getConcurrency() {
+    const ramBudget = getTotalBudget();
+    const installed = getTotalMemoryInstalled();
+
+    return installed / (ramBudget * memoryFactor);
+  }
+
+  function updateMemoryFactor() {
+    const inUse = getTotalMemoryInUse();
+    const installed = getTotalMemoryInstalled();
+
+    if (inUse > installed * 0.95) memoryFactor += 0.01;
+    if (inUse < installed * 0.90 && memoryFactor > 0.5) memoryFactor -= 0.01;
   }
 
   const metrics = { moneyEarned: 0 };
   async function monitoringLoop() {
     while (true) {
+      updateMemoryFactor();
       const { freeMem, procs, ramBudget } = procStats();
       const money = metrics.moneyEarned;
       metrics.moneyEarned = 0;
 
+      const ramBudget = getTotalBudget();
+      const inUse = getTotalMemoryInUse();
+      const installed = getTotalMemoryInstalled();
+
       ns.print(ns.sprintf(
-        "%(procs)' 5d   %(ratio)' 8s    Budget: %(budget)' 8s    Used: %(used)' 8s    Free: %(free)' 8s    Installed: %(total)' 8s    Earned: %(earned)' 8s",
+        "%(procs)' 5d   Calc: %(factor)' 5.2f   Obs: %(ratio)' 5.2f  Budget: %(budget)' 8s  Used: %(used)' 8s  %(usedPct)' 8s  Free: %(free)' 8s  Max: %(total)' 8s  $ %(earned)' 8s",
         {
           procs,
-          ratio: ns.formatPercent(getTotalMemoryInUse() / ramBudget, 0),
+          factor: memoryFactor,
+          ratio: inUse / ramBudget,
           free: ns.formatRam(freeMem),
-          used: ns.formatRam(getTotalMemoryInUse()),
-          total: ns.formatRam(getTotalMemoryInstalled()),
+          used: ns.formatRam(inUse),
+          total: ns.formatRam(installed),
+          usedPct: ns.formatPercent(inUse / installed),
           budget: ns.formatRam(ramBudget),
           earned: ns.formatNumber(money),
         }
@@ -228,7 +252,7 @@ export async function main(ns) {
       }
 
       const batchLength = ns.getWeakenTime(name) + (margin * 4);
-      nextSleep = Math.max(nextSleep, batchLength / flagArgs.concurrency);
+      nextSleep = Math.max(nextSleep, batchLength / getConcurrency());
 
       let prom = batch(batchID++, name);
       if (flagArgs.once) {
@@ -274,7 +298,6 @@ export async function main(ns) {
     threads.prepWeaken = Math.ceil(extraDifficulty / weakenAnalyze);
 
     const budget = (
-      rpcMemReqs[rpcWeaken] * threads.prepWeaken +
       rpcMemReqs[rpcWeaken] * threads.growWeaken +
       rpcMemReqs[rpcWeaken] * threads.hackWeaken +
       rpcMemReqs[rpcGrow] * threads.grow +
@@ -386,11 +409,10 @@ export async function main(ns) {
 
   // main body
   const targets = flagArgs.target.length > 0 ? flagArgs.target : validTargets(ns);
-  await Promise.all([
-    targets.map(function (name) {
-      calculateThreads(name);
-      return loop(name);
-    }),
+  targets.forEach(calculateThreads);
+
+  await Promise.all(
+    targets.map(loop),
     flagArgs.grind ? grindHackingExperience() : [],
   ].flat());
 }
