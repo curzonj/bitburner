@@ -411,7 +411,7 @@ export async function main(ns) {
   const targets = flagArgs.target.length > 0 ? flagArgs.target : validTargets(ns);
   targets.forEach(calculateThreads);
 
-  await Promise.all(
+  await Promise.all([
     targets.map(loop),
     flagArgs.grind ? grindHackingExperience() : [],
   ].flat());
