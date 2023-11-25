@@ -149,7 +149,7 @@ export async function main(ns) {
     while (true) {
       const { freeMem, procs, ramBudget } = procStats();
       ns.print(ns.sprintf(
-        "%(procs)' 5d %(ratio)' 8s  Budget: %(budget)' 10s  Used: %(used)' 10s  Free: %(free)' 10s  Installed: %(total)' 10s",
+        "%(procs)' 5d   %(ratio)' 8s    Budget: %(budget)' 8s    Used: %(used)' 8s    Free: %(free)' 8s    Installed: %(total)' 8s",
         {
           procs,
           ratio: ns.formatPercent(getTotalMemoryInUse() / ramBudget, 0),
