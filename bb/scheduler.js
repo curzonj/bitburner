@@ -14,7 +14,7 @@ export async function main(ns) {
     ['minUtil', 0.85],
     ['margin',200],
     ['reserved', 0],
-    ['steal', 0.4],
+    ['steal', 0.02],
     ['memoryOversubscription', 0.2],
     ['target', []],
   ]);
@@ -150,6 +150,7 @@ export async function main(ns) {
     return Object.values(memoryBudget).reduce((acc, num) => acc + num, 0);
   }
 
+  let hackPercentage = flagArgs.steal;
   let memoryFactor = flagArgs.initialCommit;
   function getConcurrency() {
     const ramBudget = getTotalBudget();
@@ -158,9 +159,12 @@ export async function main(ns) {
     return (installed / (ramBudget * memoryFactor)) || 1;
   }
 
-  function updateMemoryFactor() {
+  function updateTuningParameters() {
     const inUse = getTotalMemoryInUse();
     const installed = getTotalMemoryInstalled();
+    const concurrency = getConcurrency();
+
+    if (concurrency > 20) hackPercentage += 0.01;
 
     if (inUse > installed * flagArgs.maxUtil) memoryFactor += 0.01;
     if (inUse < installed * flagArgs.minUtil && memoryFactor > flagArgs.minCommit) memoryFactor -= 0.01;
@@ -170,7 +174,7 @@ export async function main(ns) {
   async function monitoringLoop() {
     while (true) {
       const concurrency = getConcurrency();
-      updateMemoryFactor();
+      updateTuningParameters();
 
       const { freeMem, procs } = procStats();
       const money = metrics.moneyEarned;
@@ -287,7 +291,6 @@ export async function main(ns) {
     const hackDifficulty = ns.getServerSecurityLevel(name);
     const minDifficulty = ns.getServerMinSecurityLevel(name);
 
-    const hackPercentage = flagArgs.steal;
     let growthFactor = Math.max(
       (1 / (1 - (hackPercentage * 1.25))),
       moneyMax / Math.max(moneyAvailable, 1)
