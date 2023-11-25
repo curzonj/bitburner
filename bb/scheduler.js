@@ -175,40 +175,6 @@ export async function main(ns) {
     return Object.values(memoryBudget).reduce((acc, num) => acc + num, 0);
   }
 
-  let hackPercentage = flagArgs.steal;
-  let memoryFactor = flagArgs.initialCommit;
-  function getConcurrency() {
-    const installed = getTotalMemoryInstalled();
-    let budget = getTotalBudget();
-
-    if (budget < 1 || budget == null || !isFinite(budget) || isNaN(budget)) {
-      return 1;
-    }
-
-    return (installed / (budget * memoryFactor));
-  }
-
-  function updateTuningParameters() {
-    const inUse = getTotalMemoryInUse();
-    const installed = getTotalMemoryInstalled();
-
-    if (inUse > installed * flagArgs.maxUtil) memoryFactor += 0.01;
-    if (inUse > installed * 0.98) memoryFactor += 0.20;
-
-    if (allTargetsStable() && inUse < installed * flagArgs.minUtil) {
-      if (getConcurrency() < flagArgs.concurrency || memoryFactor > 1) {
-        memoryFactor -= 0.01;
-      } else {
-        memoryFactor += 0.1
-        hackPercentage += 0.001;
-
-        // Update the budgets because it'll change when stealing more
-        memoryBudgetLevel = {};
-        Object.keys(memoryBudget).forEach(calculateThreads);
-      }
-    }
-  }
-
   function isOptimal(name) {
     const moneyMax = ns.getServerMaxMoney(name);
     const moneyAvailable = ns.getServerMoneyAvailable(name);
@@ -226,10 +192,6 @@ export async function main(ns) {
     const minDifficulty = ns.getServerMinSecurityLevel(name);
 
     return (moneyAvailable > (moneyMax * 0.9) && hackDifficulty < (minDifficulty * 1.1));
-  }
-
-  function allTargetsStable() {
-    return activeTargets().every(isStable);
   }
 
   function activeTargets() {
@@ -256,6 +218,53 @@ export async function main(ns) {
 
   function instabilityCount() {
     return Object.values(unstableCounters).filter(n => n > flagArgs.instability).length;
+  }
+
+  function allTargetsStable() {
+    return activeTargets().every(isStable);
+  }
+
+  function generalInstability() {
+    return instabilityCount() >= activeTargets().length;
+  }
+
+  let hackPercentage = flagArgs.steal;
+  let memoryFactor = flagArgs.initialCommit;
+  function getConcurrency() {
+    const installed = getTotalMemoryInstalled();
+    let budget = getTotalBudget();
+
+    if (budget < 1 || budget == null || !isFinite(budget) || isNaN(budget)) {
+      return 1;
+    }
+
+    if (generalInstability()) {
+      return 1;
+    }
+
+    return Math.max(installed / (budget * memoryFactor), 1);
+  }
+
+  function updateTuningParameters() {
+    const inUse = getTotalMemoryInUse();
+    const installed = getTotalMemoryInstalled();
+
+    if (inUse > installed * flagArgs.maxUtil) memoryFactor += 0.01;
+    if (inUse > installed * 0.98) memoryFactor += 0.20;
+    if (generalInstability())     memoryFactor += 0.20;
+
+    if (allTargetsStable() && inUse < installed * flagArgs.minUtil) {
+      if (getConcurrency() < flagArgs.concurrency || memoryFactor > 1) {
+        memoryFactor -= 0.01;
+      } else {
+        memoryFactor += 0.1
+        hackPercentage += 0.001;
+
+        // Update the budgets because it'll change when stealing more
+        memoryBudgetLevel = {};
+        Object.keys(memoryBudget).forEach(calculateThreads);
+      }
+    }
   }
 
   const metrics = { moneyEarned: 0 };
