@@ -22,7 +22,13 @@ export async function main(ns) {
     ns.disableLog("disableLog");
     ns.disableLog("scan");
     ns.disableLog("scp");
+    ns.disableLog("getHackingLevel");
     ns.disableLog("getServerRequiredHackingLevel");
+    ns.disableLog("getServerMaxRam");
+    ns.disableLog("getServerMoneyAvailable");
+    ns.disableLog("getServerMaxMoney");
+    ns.disableLog("getServerMinSecurityLevel");
+    ns.disableLog("getServerSecurityLevel");
   } else {
     ns.disableLog("ALL");
   }
@@ -102,22 +108,25 @@ export async function main(ns) {
     const { freeMem } = procStats();
     const memRequired = rpcMemReqs[rpc] * threads;
 
-    let pool = getWorkers().map(function (name) {
-      return ns.getServer(name);
-    }).sort(function (a, b) {
-      return (a.maxRam - a.ramUsed) - (b.maxRam - b.ramUsed);
+    let pool = getWorkers().sort(function (a, b) {
+      return (
+        ns.getServerMaxRam(a) - ns.getServerUsedRam(a)
+      ) - (
+        ns.getServerMaxRam(b) - ns.getServerUsedRam(b)
+      );
     });
 
 
     for (var i in pool) {
-      var s = pool[i];
-      var name = s.hostname;
-      let maxRam = s.maxRam;
+      var name = pool[i];
+      let maxRam = ns.getServerMaxRam(name);
+      const ramUsed = ns.getServerMaxRam(name);
+
       if (name == "home") {
         maxRam -= reservedMemory;
       }
 
-      let maxLocalThreads = Math.floor((maxRam - s.ramUsed) / rpcMemReqs[rpc])
+      let maxLocalThreads = Math.floor((maxRam - ramUsed) / rpcMemReqs[rpc])
       let localThreads = remaining;
 
       if (rpc == rpcWeaken || rpc == rpcGrow) {
