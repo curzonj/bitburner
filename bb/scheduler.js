@@ -225,6 +225,9 @@ export async function main(ns) {
   }
 
   function generalInstability() {
+    // Make sure they are all initialized
+    activeTargets().forEach(n => unstableCounters[n] ||= 0);
+
     return instabilityCount() >= activeTargets().length;
   }
 
