@@ -104,11 +104,6 @@ export async function main(ns) {
     const { freeMem } = procStats();
     const memRequired = rpcMemReqs[rpc] * threads;
 
-    if (memRequired > freeMem) {
-      ns.print("ERROR: insufficient memory ", { rpc, arg, threads, memRequired, freeMem });
-      return false;
-    }
-
     let pool = Object.keys(servers).map(function (name) {
       return ns.getServer(name);
     }).filter(function (server) {
