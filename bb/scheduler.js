@@ -9,6 +9,7 @@ export async function main(ns) {
     ['trace', false],
     ['tail', false],
     ['grind', false],
+    ['margin',200],
     ['reserved', 0],
     ['steal', 0.4],
     ['memoryOversubscription', 0.2],
@@ -48,7 +49,7 @@ export async function main(ns) {
   }
 
   const reservedMemory = flagArgs.reserved;
-  const margin = 200;
+  const margin = flagArgs.margin;
   const cpuCores = flagArgs.home ? home.cpuCores : 1;
   const memoryBudget = {};
   const memoryUsedElsewhere = getTotalMemoryInUse();
@@ -252,7 +253,7 @@ export async function main(ns) {
 
     const growFirst = moneyAvailable < moneyMax * 0.95;
     const hackPercentage = flagArgs.steal;
-    let growthFactor = (1 / (1 - (hackPercentage * 1.125)));
+    let growthFactor = (1 / (1 - (hackPercentage * 1.25)));
     if (growFirst) {
       growthFactor = moneyMax / Math.max(moneyAvailable, 1);
     }
