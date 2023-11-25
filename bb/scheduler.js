@@ -166,6 +166,7 @@ export async function main(ns) {
     const installed = getTotalMemoryInstalled();
 
     if (inUse > installed * flagArgs.maxUtil) memoryFactor += 0.01;
+    if (inUse > installed * 0.98) memoryFactor += 0.20;
 
     if (allTargetsStable() && inUse < installed * flagArgs.minUtil) {
       if (getConcurrency() < flagArgs.concurrency || memoryFactor > 1) {
