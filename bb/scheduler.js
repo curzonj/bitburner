@@ -263,7 +263,9 @@ export async function main(ns) {
         memoryFactor -= 0.01;
       } else {
         memoryFactor += 0.1
-        hackPercentage += 0.001;
+
+        // +0.005 at 50% memory usage, converge faster when memory usage is low
+        hackPercentage += (inUse / (installed * 100));
 
         // Update the budgets because it'll change when stealing more
         memoryBudgetLevel = {};
