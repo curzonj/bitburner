@@ -1,7 +1,7 @@
-import { allServers } from 'bb/lib.js'
+import { validTargets } from 'bb/lib.js'
 
 export async function main(ns) {
-  const list = allServers(ns);
+  const list = validTargets(ns);
   const myLevel = ns.getHackingLevel();
 
   ns.tprint(ns.sprintf(
@@ -18,7 +18,6 @@ export async function main(ns) {
 
   for (var i in list) {
     const name = list[i];
-    if (name == "home") continue;
 
     const levelReq = ns.getServerRequiredHackingLevel(name);
     if (levelReq > myLevel / 2) continue;
