@@ -1,7 +1,7 @@
 /** @param {NS} ns */
 export async function main(ns) {
   const homeMaxRam = ns.getServerMaxRam("home");
-  const reservedMemoryDefault = Math.min(homeMaxRam, 100);
+  const reservedMemoryDefault = ns.getScriptRam("/bb/scheduler.js");
   const flagArgs = ns.flags([
     ['home', false],
     ['debug', false],
@@ -126,7 +126,7 @@ export async function main(ns) {
       var name = s.hostname;
       let maxRam = s.maxRam;
       if (name == "home") {
-        maxRam - reservedMemory;
+        maxRam -= reservedMemory;
       }
 
       let maxLocalThreads = Math.floor((maxRam - s.ramUsed) / rpcMemReqs[rpc])
