@@ -78,6 +78,8 @@ export async function main(ns) {
   }
 
   function updateMemoryBudget(name, threads) {
+    const myLevel = ns.getHackingLevel();
+
     // Only recalculate the optimal budget after big changes in level
     if (memoryBudgetLevel[name] && memoryBudgetLevel[name] > myLevel - 20) return true;
 
@@ -92,10 +94,9 @@ export async function main(ns) {
       return false;
     }
 
-    const myLevel = ns.getHackingLevel();
     if (isOptimal(name)) memoryBudgetLevel[name] = myLevel;
-
     memoryBudget[name] = Math.ceil(budget);
+
     return true;
   }
 
