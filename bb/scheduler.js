@@ -132,10 +132,15 @@ export async function main(ns) {
       let maxLocalThreads = Math.floor((maxRam - s.ramUsed) / rpcMemReqs[rpc])
       let localThreads = remaining;
 
-      if (rpc == rpcWeaken) {
+      if (rpc == rpcWeaken || rpc == rpcGrow) {
         localThreads = Math.min(remaining, maxLocalThreads);
       } else if (localThreads > maxLocalThreads) {
-        continue;
+        if (i == pool.length -1) {
+          // If this is the biggest we have available, just use what ever we can.
+          localThreads = maxLocalThreads;
+        } else {
+          continue;
+        }
       }
 
       if (localThreads < 1) {
@@ -393,6 +398,7 @@ export async function main(ns) {
 
   async function grindHackingExperience() {
     while (true) {
+      // TODO grinding isn't finding a target in the early game
       let target = bestGrindTarget();
       let threads = calcGrindingThreads();
       let time = ns.getWeakenTime(target);
