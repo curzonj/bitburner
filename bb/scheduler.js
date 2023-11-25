@@ -255,8 +255,6 @@ export async function main(ns) {
 
     const calc = installed / (budget * memoryFactor);
 
-    ns.print({ memoryBudget, budget, installed, memoryFactor, calc, theory, maxConcurrency });
-
     if (theory) return calc;
     if (allTargetsUnhealthy()) return 1;
 
@@ -438,8 +436,6 @@ export async function main(ns) {
 
       hackPercentage += 0.005;
       activeTargets().forEach(calculateThreads);
-
-      ns.print(`${i++} Bootstrap params: `, { current: getConcurrency(true), target: flagArgs.concurrency, hackPercentage });
 
       if (hackPercentage > 0.9) {
         ns.print("ERROR: failed to converge parameters");
