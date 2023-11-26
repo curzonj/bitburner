@@ -118,9 +118,9 @@ export async function spawnThreads($, rpc, threads, arg) {
 
   for (var i in pool) {
     const name = pool[i];
-    const maxRam = ns.getServerMaxRam(name);
     const ramUsed = ns.getServerUsedRam(name);
 
+    let maxRam = ns.getServerMaxRam(name);
     if (name == "home") {
       maxRam -= $.reservedMemory;
     }
