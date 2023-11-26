@@ -248,7 +248,7 @@ export async function main(ns) {
     const installed = getTotalMemoryInstalled();
     let budget = getTotalBudget();
 
-    if (budget < 1 || validNumber(budget)) return 1;
+    if (budget < 1 || !validNumber(budget)) return 1;
 
     const calc = installed / (budget * memoryFactor);
 
@@ -309,7 +309,7 @@ export async function main(ns) {
 
       const inUse = getTotalMemoryInUse();
       const installed = getTotalMemoryInstalled();
-      const unhealthyCount = Object.values(unhealthyCounters).filter(n => n > flagArgs.targetUnhealthy).length;
+      const unhealthyCount = activeTargets().filter(isUnhealthy).length;
 
       const data = {
         procs,
