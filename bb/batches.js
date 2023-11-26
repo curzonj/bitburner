@@ -15,6 +15,7 @@ export async function main(ns) {
 
   if (flagArgs.trace) {
     flagArgs.debug = true;
+    lib.disableLog("exec");
     lib.disableNoisyLogs(ns);
   } else {
     ns.disableLog("ALL");
@@ -41,6 +42,9 @@ export async function main(ns) {
 
   const spawnOpts = { ns, reservedMemory: flagArgs.reserved };
   async function spawnThreads(rpc, threads, arg) {
+    if (flagArgs.debug) {
+      ns.print(`Spawned ${rpc} on ${arg}`);
+    }
     return lib.spawnThreads(spawnOpts, ...arguments);
   }
 
@@ -138,15 +142,20 @@ export async function main(ns) {
       await ns.asleep(60000);
     }
 
+    let i = 0;
     while (true) {
-      await batch(name);
+      await batch(i++, name);
     }
   }
 
-  async function batch(name) {
+  async function batch(batchCount, name) {
     const weakenTime = ns.getWeakenTime(name);
     const growTime = ns.getGrowTime(name);
     const hackTime = ns.getHackTime(name);
+
+    if (flagArgs.trace) {
+      log.print({ name, weakenTime, growTime, hackTime });
+    }
 
     unhealthyCheck(name);
 
@@ -174,7 +183,7 @@ export async function main(ns) {
     }
 
     await ns.asleep(hackTime - growLead + (2 * margin));
-    if (lib.isServerOptimal(ns, name) && memoryAvailable) {
+    if (batchCount >= 3 && lib.isServerOptimal(ns, name) && memoryAvailable) {
       await spawnThreads(lib.rpcHack, threads.hack, name);
     }
   }
