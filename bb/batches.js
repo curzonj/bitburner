@@ -154,7 +154,7 @@ export async function main(ns) {
     const hackTime = ns.getHackTime(name);
 
     if (flagArgs.trace) {
-      log.print({ name, weakenTime, growTime, hackTime });
+      ns.print({ name, weakenTime, growTime, hackTime });
     }
 
     unhealthyCheck(name);
