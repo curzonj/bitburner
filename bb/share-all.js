@@ -1,7 +1,7 @@
 import { allServers } from 'bb/lib.js'
 
 export async function main(ns) {
-  const reqMem = ns.getScriptRam("/rpc-share.js");
+  const reqMem = ns.getScriptRam("/bb/rpc-share.js");
 
   allServers(ns).filter(ns.hasRootAccess).forEach(target => {
     let freeMem = ns.getServerMaxRam(target) - ns.getServerUsedRam(target);
