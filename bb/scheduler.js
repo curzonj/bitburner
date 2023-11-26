@@ -7,7 +7,8 @@ export async function main(ns) {
     ['trace', false],
     ['tail', false],
     //['grind', false],
-    ['unhealthy', 4],
+    ['systemUnhealthy', 0.3],
+    ['targetUnhealthy', 4],
     ['budget', 0.6],
     ['maxUtil', 0.90],
     ['minUtil', 0.85],
@@ -223,17 +224,7 @@ export async function main(ns) {
   }
 
   function isUnhealthy(name) {
-    return unhealthyCounters[name] && unhealthyCounters[name] > flagArgs.unhealthy;
-  }
-
-  function unhealthyCount() {
-    return Object.values(unhealthyCounters).filter(n => n > flagArgs.unhealthy).length;
-  }
-
-  function allTargetsStable() {
-    const list = activeTargets();
-
-    return list.every(isStable) && !list.some(isUnhealthy);
+    return unhealthyCounters[name] && unhealthyCounters[name] > flagArgs.targetUnhealthy && !isStable(name);
   }
 
   function systemUnhealthy() {
@@ -243,7 +234,7 @@ export async function main(ns) {
 
     if (inUse > installed * 0.98) return true;
 
-    return list.length > 0 && list.every(n => isUnhealthy(n) && !isStable(n)) && list.some(isUnhealthy);
+    return list.length > 0 && list.every(isUnhealthy) && list.some(isUnhealthy);
   }
 
   function getConcurrency(theory=false) {
@@ -262,8 +253,13 @@ export async function main(ns) {
     return Math.max(Math.min(calc, maxConcurrency), 1);
   }
 
+  function enoughTargetsStable() {
+    const list = activeTargets();
+    return list.filter(isUnhealthy).length <= Math.floor(flagArgs.systemUnhealthy * list.length);
+  }
+
   function isSteadyState() {
-    return firstCycleComplete && getConcurrency() < maxConcurrency && allTargetsStable();
+    return firstCycleComplete && getConcurrency() < maxConcurrency && enoughTargetsStable();
   }
 
   function updateTuningParameters() {
@@ -277,7 +273,7 @@ export async function main(ns) {
     }
 
     // Slow start to avoid over hacking
-    if (maxConcurrency < flagArgs.concurrency*5 && allTargetsStable()) maxConcurrency++;
+    if (maxConcurrency < flagArgs.concurrency*5 && enoughTargetsStable()) maxConcurrency++;
 
     if (isSteadyState() && inUse < installed * flagArgs.minUtil) {
       if (getConcurrency() < flagArgs.concurrency) {
@@ -308,10 +304,11 @@ export async function main(ns) {
 
       const inUse = getTotalMemoryInUse();
       const installed = getTotalMemoryInstalled();
+      const unhealthyCount = Object.values(unhealthyCounters).filter(n => n > flagArgs.targetUnhealthy).length;
 
       const data = {
         procs,
-        unhealthy: unhealthyCount(),
+        unhealthy: unhealthyCount,
         factor: memoryFactor,
         steal: hackPercentage,
         concurrency,
