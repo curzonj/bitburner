@@ -19,7 +19,7 @@ export async function main(ns) {
   } else if (flagArgs.target.length > 0) {
     targets = flagArgs.target;
   } else {
-    targets = validTargets(ns).filter(s => !isServerStable(ns, s) && ns.getServerRequiredHackingLevel(s) < myLevel/2);
+    targets = validTargets(ns).filter(s => !isServerOptimal(ns, s) && ns.getServerRequiredHackingLevel(s) < myLevel/2);
   }
 
   const workers = allServers(ns)
