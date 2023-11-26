@@ -28,6 +28,8 @@ export async function main(ns) {
   activeTargets().forEach(unhealthyCheck);
   if (systemUnhealthy()) {
     ns.tprint("system is unhealthy, prepare the servers first");
+    ns.tprint("Memory : ", ns.formatPercent(lib.getTotalMemoryInUse(ns) /  lib.getTotalMemoryInstalled(ns)));
+    ns.tprint(activeTargets().filter(isUnhealthy));
     ns.exit();
   }
 
