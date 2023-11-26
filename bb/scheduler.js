@@ -384,13 +384,8 @@ export async function main(ns) {
       const batchLength = ns.getWeakenTime(name) + (margin * 4);
       const nextSleep = Math.max(margin * 4, batchLength / getConcurrency());
 
-      let prom = batch(batchID++, name);
-      if (flagArgs.once) {
-        return prom;
-      }
-
       await Promise.race([
-        prom,
+        batch(batchID++, name),
         ns.asleep(nextSleep),
       ]);
     }
