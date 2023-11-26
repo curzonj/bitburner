@@ -1,9 +1,10 @@
-import { allServers, validTargets, bestGrindTarget } from 'bb/lib.js'
+import { allServers, validTargets, bestGrindTarget, isServerStable } from 'bb/lib.js'
 
 export async function main(ns) {
   const flagArgs = ns.flags([
     ['target', []],
     ['all', false],
+    ['best', false],
   ]);
 
   const script = "/bb/rpc-grind.js";
@@ -13,16 +14,17 @@ export async function main(ns) {
   let targets = [];
   if (flagArgs.all) {
     targets = validTargets(ns)
+  } else if (flagArgs.best) {
+    targets = [ bestGrindTarget(ns) ];
   } else if (flagArgs.target.length > 0) {
     targets = flagArgs.target;
   } else {
-    targets = [ bestGrindTarget(ns) ];
+    targets = validTargets.filter(s => !isServerStable(ns, s));
   }
 
   const workers = allServers(ns)
     .filter(s => ns.hasRootAccess(s));
   const totalThreads = workers.reduce((acc, name) => {
-    ns.killall(name, true);
     if (name != 'home') ns.scp(script, name);
 
     const freeMem = ns.getServerMaxRam(name) - ns.getServerUsedRam(name);
