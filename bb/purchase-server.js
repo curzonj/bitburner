@@ -2,7 +2,7 @@
 export async function main(ns) {
   const maxServers = ns.getPurchasedServerLimit();
   const list = ns.getPurchasedServers();
-  const ram = ns.args[0] || ns.getPurchasedServerMaxRam()];
+  const ram = ns.args[0] || ns.getPurchasedServerMaxRam();
 
   if (list.length == maxServers) {
     ns.tprint("Deleting server: " + list[0]);
