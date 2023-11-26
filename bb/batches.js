@@ -23,6 +23,7 @@ export async function main(ns) {
   const margin = 30;
   const targets = flagArgs.target.length > 0 ? flagArgs.target : lib.validTargets(ns);
   const maxCycleTime = targets.reduce((acc, n) => Math.max(acc, ns.getWeakenTime(n)), 0);
+  const unhealthyCounters = {};
 
   targets.forEach(unhealthyCheck);
   if (systemUnhealthy()) {
@@ -55,7 +56,6 @@ export async function main(ns) {
     return targets.filter(n => ns.getServerRequiredHackingLevel(n) < myLevel/2);
   }
 
-  const unhealthyCounters = {};
   function unhealthyCheck(name) {
     unhealthyCounters[name] = isOptimal(name);
   }
