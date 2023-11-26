@@ -148,7 +148,7 @@ export async function main(ns) {
     }
 
     while (true) {
-      await batch();
+      await batch(name);
     }
   }
 
