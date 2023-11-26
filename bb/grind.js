@@ -1,4 +1,4 @@
-import { allServers, validTargets, bestGrindTarget, isServerStable } from 'bb/lib.js'
+import { allServers, validTargets, bestGrindTarget, isServerOptimal } from 'bb/lib.js'
 
 export async function main(ns) {
   const flagArgs = ns.flags([
