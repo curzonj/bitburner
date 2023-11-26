@@ -168,22 +168,22 @@ export async function main(ns) {
     let memoryAvailable = true;
 
     if (lib.isServerOptimal(ns, name)) {
-      memoryAvailable &&= await spawnThreads(rpcWeaken, threads.hackWeaken, name);
+      memoryAvailable &&= await spawnThreads(lib.rpcWeaken, threads.hackWeaken, name);
     }
 
     await ns.asleep(margin * 2);
     if (memoryAvailable) {
-      memoryAvailable &&= await spawnThreads(rpcWeaken, threads.growWeaken, name);
+      memoryAvailable &&= await spawnThreads(lib.rpcWeaken, threads.growWeaken, name);
     }
 
     const growLead = weakenTime - growTime - margin;
     await ns.asleep(growLead);
     if (memoryAvailable) {
-      memoryAvailable &&= await spawnThreads(rpcGrow, threads.grow, name);
+      memoryAvailable &&= await spawnThreads(lib.rpcGrow, threads.grow, name);
     }
 
     if (lib.isServerOptimal(ns, name) && memoryAvailable) {
-      await spawnThreads(rpcHack, threads.hack, name);
+      await spawnThreads(lib.rpcHack, threads.hack, name);
     }
 
     await ns.asleep(hackTime - growLead - margin);
@@ -223,9 +223,9 @@ export async function main(ns) {
 
   let hackPercentage = 0;
   async function bootstrapParameters() {
-    const available = ns.getTotalMemoryFree(ns) - flagArgs.reserved;
+    const available = lib.getTotalMemoryFree(ns) - flagArgs.reserved;
     const rpcMemReqs = {};
-    const rpcFuncs = [rpcHack, rpcGrow, rpcWeaken];
+    const rpcFuncs = [lib.rpcHack, lib.rpcGrow, lib.rpcWeaken];
     rpcFuncs.forEach(function (n) {
       rpcMemReqs[n] = ns.getScriptRam(n);
     });
@@ -243,10 +243,10 @@ export async function main(ns) {
         .map(calculateThreads)
         .reduce((acc, threads) => {
           return acc +
-            rpcMemReqs[rpcWeaken] * threads.growWeaken +
-            rpcMemReqs[rpcWeaken] * threads.hackWeaken +
-            rpcMemReqs[rpcGrow] * threads.grow +
-            rpcMemReqs[rpcHack] * threads.hack;
+            rpcMemReqs[lib.rpcWeaken] * threads.growWeaken +
+            rpcMemReqs[lib.rpcWeaken] * threads.hackWeaken +
+            rpcMemReqs[lib.rpcGrow] * threads.grow +
+            rpcMemReqs[lib.rpcHack] * threads.hack;
         }, 0);
 
 

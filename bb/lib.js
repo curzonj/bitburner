@@ -181,7 +181,7 @@ export async function listen(ns, portNumber, fn) {
   }
 }
 
-export async rsyslog(ns, opts) {
+export async function rsyslog(ns, opts) {
   const { debug, trace } = opts;
 
   return Promise.all([
