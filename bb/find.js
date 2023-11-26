@@ -18,6 +18,15 @@ function find(ns, name, origin, goal) {
     .filter(n => n != origin)
     .map(n => find(ns, n, name, goal))
     .filter(n => n && n.length > 0)
-    .map(list => [ name, list ])
+    .map(list => {
+      const hop = list[0];
+      const s = ns.getServer(hop);
+
+      if (s.backdoorInstalled) {
+        return list;
+      } else {
+        return [ name, list ]
+      }
+    })
     .flat(2);
 }
