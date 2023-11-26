@@ -9,7 +9,7 @@ export async function main(ns) {
   const myLevel = ns.getHackingLevel();
 
   ns.tprint(ns.sprintf(
-    "%(name)' -20s %(levelReq)' 4s %(money)' 6s %(max)' 10s %(difficulty)' 10s
+    "%(name)' -20s %(levelReq)' 4s %(money)' 6s %(max)' 10s %(difficulty)' 10s",
     {
       name: "Name",
       levelReq: "Level",
