@@ -59,7 +59,7 @@ export async function main(ns) {
   }
 
   function unhealthyCheck(name) {
-    unhealthyCounters[name] = isOptimal(name);
+    unhealthyCounters[name] = !isOptimal(name);
   }
 
   function isUnhealthy(name) {
