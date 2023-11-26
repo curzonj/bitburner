@@ -1,18 +1,19 @@
-import { validTargets } from 'bb/lib.js'
+import { validTargets, isServerStable } from 'bb/lib.js'
 
 export async function main(ns) {
   const list = validTargets(ns);
   const myLevel = ns.getHackingLevel();
 
   ns.tprint(ns.sprintf(
-    "%(name)' -20s %(levelReq)' 4s %(money)' 10s %(max)' 10s%(hackDifficulty)' 10s%(minDifficulty)' 10s",
+    "%(name)' -20s %(levelReq)' 4s %(money)' 10s %(max)' 10s%(hackDifficulty)' 10s%(minDifficulty)' 10s %(stable)' 6s",
     {
       name: "Name",
       levelReq: "Level",
       money: "Avail",
       max: "Max",
       hackDifficulty:"Current",
-      minDifficulty:"Min"
+      minDifficulty:"Min",
+      stable: "Stable",
     }
   ))
 
@@ -28,8 +29,8 @@ export async function main(ns) {
     const minDifficulty = ns.getServerMinSecurityLevel(name);
 
     ns.tprint(ns.sprintf(
-      "%(name)' -20s %(levelReq)' 4d %(money)' 10s %(max)' 10s%(hackDifficulty)' 10.3f%(minDifficulty)' 10.3f",
-      { name, levelReq, money: ns.formatNumber(money), max: ns.formatNumber(maxMoney), hackDifficulty, minDifficulty }
+      "%(name)' -20s %(levelReq)' 4d %(money)' 10s %(max)' 10s%(hackDifficulty)' 10.3f%(minDifficulty)' 10.3f %(stable)' 6s",
+      { name, levelReq, money: ns.formatNumber(money), max: ns.formatNumber(maxMoney), hackDifficulty, minDifficulty, stable: (isServerStable(ns, name) ? '', 'x') }
     ));
   }
 }

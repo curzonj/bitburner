@@ -1,4 +1,4 @@
-import { allServers, validTargets, bestGrindTarget } from 'bb/lib.js'
+import { allServers, validTargets, bestGrindTarget, isServerStable } from 'bb/lib.js'
 
 /** @param {NS} ns */
 export async function main(ns) {
@@ -200,14 +200,8 @@ export async function main(ns) {
     return (moneyAvailable == moneyMax && hackDifficulty == minDifficulty);
   }
 
-
   function isStable(name) {
-    const moneyMax = ns.getServerMaxMoney(name);
-    const moneyAvailable = ns.getServerMoneyAvailable(name);
-    const hackDifficulty = ns.getServerSecurityLevel(name);
-    const minDifficulty = ns.getServerMinSecurityLevel(name);
-
-    return (moneyAvailable > (moneyMax * 0.9) && hackDifficulty < (minDifficulty * 1.1));
+    return isServerStable(ns, name);
   }
 
   function activeTargets() {

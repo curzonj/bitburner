@@ -41,3 +41,12 @@ export function bestGrindTarget(ns) {
     });
   return list[0];
 }
+
+export function isServerStable(ns, name) {
+  const moneyMax = ns.getServerMaxMoney(name);
+  const moneyAvailable = ns.getServerMoneyAvailable(name);
+  const hackDifficulty = ns.getServerSecurityLevel(name);
+  const minDifficulty = ns.getServerMinSecurityLevel(name);
+
+  return (moneyAvailable > (moneyMax * 0.9) && hackDifficulty < (minDifficulty * 1.1));
+}
