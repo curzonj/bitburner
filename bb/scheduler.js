@@ -88,6 +88,11 @@ export async function main(ns) {
     ns.moveTail(0, 0);
   }
 
+  async function reportFirstCycle() {
+    await ns.asleep(maxCycleTime);
+    firstCycleComplete = true;
+  }
+
   function updateMemoryBudget(name, threads) {
     const myLevel = ns.getHackingLevel();
 
@@ -498,8 +503,6 @@ export async function main(ns) {
       await ns.asleep(times.hackTime + (margin*4));
     }
 
-    if (!firstCycleComplete) firstCycleComplete = true;
-
     if (flagArgs.debug) {
       log("end", { minDifficulty , hackDifficulty, money: moneyAvailable, max: moneyMax });
     }
@@ -547,6 +550,7 @@ export async function main(ns) {
 
   await Promise.all([
     targets.map(loop),
+    reportFirstCycle(),
 //    flagArgs.grind ? grindHackingExperience() : [],
   ].flat());
 }
