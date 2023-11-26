@@ -25,7 +25,7 @@ export async function main(ns) {
   const maxCycleTime = targets.reduce((acc, n) => Math.max(acc, ns.getWeakenTime(n)), 0);
   const unhealthyCounters = {};
 
-  targets.forEach(unhealthyCheck);
+  activeTargets().forEach(unhealthyCheck);
   if (systemUnhealthy()) {
     ns.tprint("system is unhealthy, prepare the servers first");
     ns.exit();
