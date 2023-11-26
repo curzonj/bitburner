@@ -60,6 +60,10 @@ export async function main(ns) {
     }, 0);
   }
 
+  function validNumber(n) {
+    return (budget != n && isFinite(n) && !isNaN(n) && n != undefined);
+  }
+
   const reservedMemory = flagArgs.reserved;
   const margin = flagArgs.margin;
   const cpuCores = 1;
@@ -81,7 +85,7 @@ export async function main(ns) {
   });
   const maxRpcMemReq = Math.max.apply(null, Object.values(rpcMemReqs));
   const targets = flagArgs.target.length > 0 ? flagArgs.target : validTargets(ns);
-  const maxCycleTime = targets.reduce((acc, n) => Math.max(acc, ns.getWeakenTime(n), 0));
+  const maxCycleTime = targets.reduce((acc, n) => Math.max(acc, ns.getWeakenTime(n)), 0);
 
   if (flagArgs.tail) {
     ns.tail();
@@ -106,9 +110,7 @@ export async function main(ns) {
       rpcMemReqs[rpcHack] * threads.hack
     );
 
-    if (budget < 1 || budget == null || !isFinite(budget) || isNaN(budget)) {
-      return false;
-    }
+    if (budget < 1 || !validNumber(budget)) return false;
 
     if (isOptimal(name)) memoryBudgetLevel[name] = myLevel;
     memoryBudget[name] = Math.ceil(budget);
@@ -246,9 +248,7 @@ export async function main(ns) {
     const installed = getTotalMemoryInstalled();
     let budget = getTotalBudget();
 
-    if (budget < 1 || budget == null || !isFinite(budget) || isNaN(budget)) {
-      return 1;
-    }
+    if (budget < 1 || validNumber(budget)) return 1;
 
     const calc = installed / (budget * memoryFactor);
 
