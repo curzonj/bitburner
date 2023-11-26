@@ -242,8 +242,12 @@ export async function main(ns) {
     return list.every(isStable) && !list.some(isUnhealthy);
   }
 
-  function allTargetsUnhealthy() {
+  function systemUnhealthy() {
     const list = activeTargets();
+    const inUse = getTotalMemoryInUse();
+    const installed = getTotalMemoryInstalled();
+
+    if (inUse > installed * 0.98) return true;
 
     return list.length > 0 && list.every(n => isUnhealthy(n) && !isStable(n)) && list.some(isUnhealthy);
   }
@@ -259,7 +263,7 @@ export async function main(ns) {
     const calc = installed / (budget * memoryFactor);
 
     if (theory) return calc;
-    if (allTargetsUnhealthy()) return 1;
+    if (systemUnhealthy()) return 1;
 
     return Math.max(Math.min(calc, maxConcurrency), 1);
   }
@@ -275,7 +279,7 @@ export async function main(ns) {
     if (memoryFactor <= 2) {
       if (inUse > installed * flagArgs.maxUtil) memoryFactor += 0.01;
       if (inUse > installed * 0.98) memoryFactor += 0.20;
-      if (allTargetsUnhealthy())     memoryFactor += 0.20;
+      if (systemUnhealthy())     memoryFactor += 0.20;
     }
 
     if (isSteadyState() && inUse < installed * flagArgs.minUtil) {
