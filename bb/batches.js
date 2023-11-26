@@ -24,7 +24,11 @@ export async function main(ns) {
   const targets = flagArgs.target.length > 0 ? flagArgs.target : lib.validTargets(ns);
   const maxCycleTime = targets.reduce((acc, n) => Math.max(acc, ns.getWeakenTime(n)), 0);
 
-  if (flagArgs.tail) lib.showTail(ns);
+  targets.forEach(unhealthyCheck);
+  if (systemUnhealthy()) {
+    ns.tprint("system is unhealthy, prepare the servers first");
+    ns.exit();
+  }
 
   let firstCycleComplete = false;
   async function reportFirstCycle() {
@@ -247,6 +251,7 @@ export async function main(ns) {
   accounting();
   lib.rsyslog(ns, flagArgs);
 
+  if (flagArgs.tail) lib.showTail(ns);
   monitoringLoop();
 
   // Let the monitoring loops get started
