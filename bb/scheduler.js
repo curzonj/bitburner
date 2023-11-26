@@ -80,7 +80,7 @@ export async function main(ns) {
   });
   const maxRpcMemReq = Math.max.apply(null, Object.values(rpcMemReqs));
   const targets = flagArgs.target.length > 0 ? flagArgs.target : validTargets(ns);
-  const maxCycleTime = targets.reduce((acc, n) => Math.max(acc, ns.getWeakenTime(name), 0));
+  const maxCycleTime = targets.reduce((acc, n) => Math.max(acc, ns.getWeakenTime(n), 0));
 
   if (flagArgs.tail) {
     ns.tail();
