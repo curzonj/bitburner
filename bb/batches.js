@@ -15,7 +15,7 @@ export async function main(ns) {
 
   if (flagArgs.trace) {
     flagArgs.debug = true;
-    lib.disableLog("exec");
+    ns.disableLog("exec");
     lib.disableNoisyLogs(ns);
   } else {
     ns.disableLog("ALL");
