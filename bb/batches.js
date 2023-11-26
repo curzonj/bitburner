@@ -53,42 +53,28 @@ export async function main(ns) {
 
   const unhealthyCounters = {};
   function unhealthyCheck(name) {
-    unhealthyCounters[name] ||= 0;
-
-    if (isOptimal(name)) {
-      unhealthyCounters[name] = 0;
-    } else {
-      unhealthyCounters[name]++;
-    }
-
-    return isUnhealthy(name);
+    unhealthyCounters[name] = isOptimal(name);
   }
 
   function isUnhealthy(name) {
-    return unhealthyCounters[name] && unhealthyCounters[name] > flagArgs.targetUnhealthy && !isOptimal(name);
+    return unhealthyCounters[name];
   }
 
   function isOptimal(name) {
     return lib.isServerOptimal(ns, name);
   }
 
+  function unhealthyCount() {
+    return activeTargets().filter(isUnhealthy).length;
+  }
+
   function systemUnhealthy() {
-    const list = activeTargets();
     const inUse = lib.getTotalMemoryInUse(ns);
     const installed = lib.getTotalMemoryInstalled(ns);
 
     if (inUse > installed * 0.98) return true;
 
-    return list.length > 0 && list.every(isUnhealthy) && list.some(isUnhealthy);
-  }
-
-  function enoughTargetsStable() {
-    const list = activeTargets();
-    return list.filter(isUnhealthy).length <= Math.floor(flagArgs.systemUnhealthy * list.length);
-  }
-
-  function isSteadyState() {
-    return firstCycleComplete && enoughTargetsStable();
+    return unhealthyCount() > flagArgs.systemUnhealthy;
   }
 
   function updateTuningParameters() {
@@ -99,7 +85,7 @@ export async function main(ns) {
       hackPercentage -= 0.01;
     } else if (inUse > installed * flagArgs.maxUtil) {
       hackPercentage -= 0.001;
-    } else if (isSteadyState() && inUse < installed * flagArgs.minUtil) {
+    } else if (firstCycleComplete && inUse < installed * flagArgs.minUtil) {
       // +0.005 at 50% memory usage, converge faster when memory usage is low
       hackPercentage += ((installed - inUse) / (installed * 100));
     }
@@ -113,13 +99,12 @@ export async function main(ns) {
       const money = metrics.moneyEarned;
       metrics.moneyEarned = 0;
 
-      const unhealthyCount = activeTargets().filter(isUnhealthy).length;
       const inUse = lib.getTotalMemoryInUse(ns);
       const installed = lib.getTotalMemoryInstalled(ns);
       const freeMem = installed - inUse;
 
       const data = {
-        unhealthy: unhealthyCount,
+        unhealthy: unhealthyCount(),
         steal: hackPercentage,
         free: ns.formatRam(freeMem),
         usedPct: ns.formatPercent(inUse / installed),
@@ -182,11 +167,10 @@ export async function main(ns) {
       memoryAvailable &&= await spawnThreads(lib.rpcGrow, threads.grow, name);
     }
 
+    await ns.asleep(hackTime - growLead + (2 * margin));
     if (lib.isServerOptimal(ns, name) && memoryAvailable) {
       await spawnThreads(lib.rpcHack, threads.hack, name);
     }
-
-    await ns.asleep(hackTime - growLead - margin);
   }
 
   function calculateThreads(name) {
