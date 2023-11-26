@@ -206,6 +206,7 @@ export async function main(ns) {
     );
 
     const threads = {
+      name,
       hack: Math.ceil(hackPercentage / ns.hackAnalyze(name)),
       grow: Math.ceil(ns.growthAnalyze(name, growthFactor)),
     }
@@ -234,14 +235,13 @@ export async function main(ns) {
 
     do {
       hackPercentage += 0.005;
-      if (hackPercentage > 0.9) {
-        ns.print("ERROR: failed to converge parameters");
-        ns.exit();
-      }
+      if (hackPercentage >= 0.6) return;
 
       budget = activeTargets()
         .map(calculateThreads)
         .reduce((acc, threads) => {
+          if (flagArgs.trace) ns.print(threads);
+
           return acc +
             rpcMemReqs[lib.rpcWeaken] * threads.growWeaken +
             rpcMemReqs[lib.rpcWeaken] * threads.hackWeaken +
@@ -249,9 +249,10 @@ export async function main(ns) {
             rpcMemReqs[lib.rpcHack] * threads.hack;
         }, 0);
 
+      if (flagArgs.trace) ns.print({ available, budget, hackPercentage });
 
       await ns.sleep(10);
-    } while(budget < available);
+    } while(budget*4 < available);
 
     // The last round went over, so back it off
     hackPercentage -= 0.005;
