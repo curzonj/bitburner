@@ -405,18 +405,18 @@ export async function main(ns) {
     const minDifficulty = ns.getServerMinSecurityLevel(name);
 
     let growthFactor = Math.max(
-      (1 / (1 - (hackPercentage * 1.25))),
+      (1 / (1 - hackPercentage)),
       moneyMax / Math.max(moneyAvailable, 1)
     );
 
     const threads = {
       hack: Math.ceil(hackPercentage / ns.hackAnalyze(name)),
-      grow: Math.ceil(ns.growthAnalyze(name, growthFactor, cpuCores)),
+      grow: Math.ceil(ns.growthAnalyze(name, growthFactor, cpuCores) * 1.25),
     }
 
     const extraDifficulty = hackDifficulty - minDifficulty;
     const growthAnalyze = ns.growthAnalyzeSecurity(threads.grow, undefined, cpuCores);
-    const weakenAnalyze = ns.weakenAnalyze(1, cpuCores);
+    const weakenAnalyze = ns.weakenAnalyze(1, cpuCores) * 0.75;
     const hackAnalyze = ns.hackAnalyzeSecurity(threads.hack, name);
 
     threads.growWeaken = Math.ceil((growthAnalyze+extraDifficulty) / weakenAnalyze);
