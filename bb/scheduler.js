@@ -8,6 +8,7 @@ export async function main(ns) {
     ['tail', false],
     //['grind', false],
     ['unhealthy', 4],
+    ['budget', 0.6],
     ['maxUtil', 0.90],
     ['minUtil', 0.85],
     ['concurrency', 40],
@@ -19,7 +20,7 @@ export async function main(ns) {
   let memoryBudget = {};
   let memoryBudgetLevel = {};
   let hackPercentage = 0;
-  let memoryFactor = 1;
+  let memoryFactor = flagArgs.budget;
   let maxConcurrency = 1;
   let firstCycleComplete = false;
 
@@ -281,7 +282,7 @@ export async function main(ns) {
       // Slow start to avoid over hacking
       if (maxConcurrency < flagArgs.concurrency*5) maxConcurrency++;
 
-      if (getConcurrency() < flagArgs.concurrency || memoryFactor > 1) {
+      if (getConcurrency() < flagArgs.concurrency) {
         memoryFactor -= 0.01;
       } else {
         memoryFactor += 0.1
