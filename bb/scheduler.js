@@ -13,7 +13,7 @@ export async function main(ns) {
     ['maxUtil', 0.90],
     ['minUtil', 0.85],
     ['concurrency', 40],
-    ['margin',200],
+    ['margin', 50],
     ['reserved', 10],
     ['target', []],
   ]);
