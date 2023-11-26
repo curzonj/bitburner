@@ -8,7 +8,6 @@ export async function main(ns) {
     ['tail', false],
     //['grind', false],
     ['unhealthy', 4],
-    ['initialCommit', 1.4],
     ['maxUtil', 0.90],
     ['minUtil', 0.85],
     ['concurrency', 40],
@@ -16,6 +15,13 @@ export async function main(ns) {
     ['reserved', 10],
     ['target', []],
   ]);
+
+  let memoryBudget = {};
+  let memoryBudgetLevel = {};
+  let hackPercentage = 0;
+  let memoryFactor = 1;
+  let maxConcurrency = 1;
+  let firstCycleComplete = false;
 
   if (flagArgs.trace) {
     flagArgs.debug = true;
@@ -55,8 +61,6 @@ export async function main(ns) {
   const reservedMemory = flagArgs.reserved;
   const margin = flagArgs.margin;
   const cpuCores = 1;
-  let memoryBudget = {};
-  let memoryBudgetLevel = {};
   const memoryUsedElsewhere = getTotalMemoryInUse();
   const selfMemReq = ns.getScriptRam("/bb/scheduler.js");
 
@@ -75,6 +79,7 @@ export async function main(ns) {
   });
   const maxRpcMemReq = Math.max.apply(null, Object.values(rpcMemReqs));
   const targets = flagArgs.target.length > 0 ? flagArgs.target : validTargets(ns);
+  const maxCycleTime = targets.reduce((acc, n) => Math.max(acc, ns.getWeakenTime(name), 0));
 
   if (flagArgs.tail) {
     ns.tail();
@@ -242,9 +247,6 @@ export async function main(ns) {
     return list.length > 0 && list.every(n => isUnhealthy(n) && !isStable(n)) && list.some(isUnhealthy);
   }
 
-  let hackPercentage = 0;
-  let memoryFactor = flagArgs.initialCommit;
-  let maxConcurrency = 1;
   function getConcurrency(theory=false) {
     const installed = getTotalMemoryInstalled();
     let budget = getTotalBudget();
@@ -261,6 +263,10 @@ export async function main(ns) {
     return Math.max(Math.min(calc, maxConcurrency), 1);
   }
 
+  function isSteadyState() {
+    return firstCycleComplete && getConcurrency() < maxConcurrency && allTargetsStable();
+  }
+
   function updateTuningParameters() {
     const inUse = getTotalMemoryInUse();
     const installed = getTotalMemoryInstalled();
@@ -271,7 +277,7 @@ export async function main(ns) {
       if (allTargetsUnhealthy())     memoryFactor += 0.20;
     }
 
-    if (allTargetsStable() && inUse < installed * flagArgs.minUtil) {
+    if (isSteadyState() && inUse < installed * flagArgs.minUtil) {
       // Slow start to avoid over hacking
       if (maxConcurrency < flagArgs.concurrency*5) maxConcurrency++;
 
@@ -316,7 +322,7 @@ export async function main(ns) {
       };
 
       try {
-        ns.print(ns.sprintf("%(procs)' 5d  mFCSu: %(factor)' 4.2f / %(concurrency)' 6.2f / %(steal)' 5.3f / %(unhealthy)' 1d  Mem: %(usedPct)' 6s / %(free)' 8s  $ %(earned)' 8s",data));
+        ns.print(ns.sprintf("%(procs)' 5d  mFCSu: %(factor)' 4.2f / %(concurrency)' 6.2f / %(steal)' 5.3f / %(unhealthy)' 2d  Mem: %(usedPct)' 6s / %(free)' 8s  $ %(earned)' 8s",data));
       } catch(e) {
         ns.print("ERROR: ", data);
       }
@@ -500,6 +506,8 @@ export async function main(ns) {
       await spawnThreads(rpcHack, threads.hack, name);
       await ns.asleep(times.hackTime + (margin*4));
     }
+
+    if (!firstCycleComplete) firstCycleComplete = true;
 
     if (flagArgs.debug) {
       log("end", { minDifficulty , hackDifficulty, money: moneyAvailable, max: moneyMax });
