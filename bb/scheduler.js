@@ -282,10 +282,10 @@ export async function main(ns) {
       if (systemUnhealthy())     memoryFactor += 0.20;
     }
 
-    if (isSteadyState() && inUse < installed * flagArgs.minUtil) {
-      // Slow start to avoid over hacking
-      if (maxConcurrency < flagArgs.concurrency*5) maxConcurrency++;
+    // Slow start to avoid over hacking
+    if (maxConcurrency < flagArgs.concurrency*5 && allTargetsStable()) maxConcurrency++;
 
+    if (isSteadyState() && inUse < installed * flagArgs.minUtil) {
       if (getConcurrency() < flagArgs.concurrency) {
         memoryFactor -= 0.01;
       } else {
