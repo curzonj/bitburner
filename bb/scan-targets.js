@@ -37,7 +37,7 @@ export async function main(ns) {
       {
         name, levelReq, money: ns.formatPercent(money/maxMoney),
         max: ns.formatNumber(maxMoney), difficulty: hackDifficulty - minDifficulty,
-        pointer: isServerOptimal(ns, name) ? '', '<-',
+        pointer: isServerOptimal(ns, name) ? '' : '<-',
       },
     ));
   }
