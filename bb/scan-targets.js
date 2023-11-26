@@ -9,7 +9,7 @@ export async function main(ns) {
   const myLevel = ns.getHackingLevel();
 
   ns.tprint(ns.sprintf(
-    "%(name)' -20s %(levelReq)' 4s %(money)' 6s %(max)' 10s %(difficulty)' 10s",
+    "%(name)' -20s %(levelReq)' 4s %(money)' 7s %(max)' 10s %(difficulty)' 10s",
     {
       name: "Name",
       levelReq: "Level",
@@ -33,7 +33,7 @@ export async function main(ns) {
     // TODO, just report the % money, and difficulty, not stability
 
     ns.tprint(ns.sprintf(
-      "%(name)' -20s %(levelReq)' 4d %(money)' 6s %(max)' 10s +%(difficulty)' 10.3f %(pointer)' 2s",
+      "%(name)' -20s %(levelReq)' 4d %(money)' 7s %(max)' 10s +%(difficulty)' -10.2f %(pointer)' 2s",
       {
         name, levelReq, money: ns.formatPercent(money/maxMoney),
         max: ns.formatNumber(maxMoney), difficulty: hackDifficulty - minDifficulty,
