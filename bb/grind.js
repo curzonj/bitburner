@@ -19,7 +19,7 @@ export async function main(ns) {
   } else if (flagArgs.target.length > 0) {
     targets = flagArgs.target;
   } else {
-    targets = validTargets.filter(s => !isServerStable(ns, s));
+    targets = validTargets(ns).filter(s => !isServerStable(ns, s));
   }
 
   const workers = allServers(ns)
