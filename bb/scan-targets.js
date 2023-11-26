@@ -32,6 +32,8 @@ export async function main(ns) {
     const hackDifficulty = ns.getServerSecurityLevel(name);
     const minDifficulty = ns.getServerMinSecurityLevel(name);
 
+    // TODO, just report the % money, and difficulty, not stability
+
     ns.tprint(ns.sprintf(
       "%(name)' -20s %(levelReq)' 4d %(money)' 10s %(max)' 10s%(hackDifficulty)' 10.3f%(minDifficulty)' 10.3f %(stable)' -6s",
       { name, levelReq, money: ns.formatNumber(money), max: ns.formatNumber(maxMoney), hackDifficulty, minDifficulty, stable: (isServerStable(ns, name) ? '' : 'x') }
