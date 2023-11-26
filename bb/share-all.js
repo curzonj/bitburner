@@ -6,7 +6,7 @@ export async function main(ns) {
 
   allServers(ns).filter(ns.hasRootAccess).forEach(target => {
     const freeMem = ns.getServerMaxRam(target) - ns.getServerUsedRam(target);
-    const threads = Math.max(maxThreads, Math.floor(freeMem / reqMem));
+    const threads = Math.min(maxThreads, Math.floor(freeMem / reqMem));
     if (threads < 1) return;
 
     ns.scp('/bb/rpc-share.js', target);
