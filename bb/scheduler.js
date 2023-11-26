@@ -266,10 +266,10 @@ export async function main(ns) {
     const inUse = getTotalMemoryInUse();
     const installed = getTotalMemoryInstalled();
 
-    if (memoryFactor <= 2) {
-      if (inUse > installed * flagArgs.maxUtil) memoryFactor += 0.01;
-      if (inUse > installed * 0.98) memoryFactor += 0.20;
-      if (systemUnhealthy())     memoryFactor += 0.20;
+    if (inUse > installed * flagArgs.maxUtil) {
+      memoryFactor += 0.01;
+    } else if (systemUnhealthy() && memoryFactor <= 2) {
+      memoryFactor += 0.20;
     }
 
     // Slow start to avoid over hacking
