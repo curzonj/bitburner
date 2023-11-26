@@ -104,6 +104,7 @@ export const rpcGrow = "/bb/rpc-grow.js";
 export const rpcWeaken = "/bb/rpc-weaken.js";
 export async function spawnThreads($, rpc, threads, arg) {
   const ns = $.ns;
+  const shard = ($.shard != false);
 
   const pool = getWorkers(ns).sort(function (a, b) {
     return (
@@ -128,7 +129,7 @@ export async function spawnThreads($, rpc, threads, arg) {
     const maxLocalThreads = Math.floor((maxRam - ramUsed) / scriptMemReq);
     let localThreads = remaining;
 
-    if (rpc == rpcWeaken || rpc == rpcGrow) {
+    if (shard && (rpc == rpcWeaken || rpc == rpcGrow)) {
       localThreads = Math.min(remaining, maxLocalThreads);
     } else if (localThreads > maxLocalThreads) {
       if (i == pool.length -1) {

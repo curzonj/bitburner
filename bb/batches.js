@@ -40,7 +40,7 @@ export async function main(ns) {
     firstCycleComplete = true;
   }
 
-  const spawnOpts = { ns, reservedMemory: flagArgs.reserved };
+  const spawnOpts = { ns, reservedMemory: flagArgs.reserved, shard: !flagArgs.trace };
   async function spawnThreads(rpc, threads, arg) {
     if (flagArgs.debug) {
       ns.print(`Spawned ${rpc} on ${arg}`);
@@ -142,7 +142,7 @@ export async function main(ns) {
       await ns.asleep(60000);
     }
 
-    let i = 0;
+    let i = 1;
     while (true) {
       await batch(i++, name);
     }
@@ -263,7 +263,7 @@ export async function main(ns) {
   lib.rsyslog(ns, flagArgs);
 
   if (flagArgs.tail) lib.showTail(ns);
-  monitoringLoop();
+  if (!flagArgs.trace) monitoringLoop();
 
   // Let the monitoring loops get started
   await ns.asleep(10);
