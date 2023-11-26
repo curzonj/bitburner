@@ -61,7 +61,7 @@ export async function main(ns) {
   }
 
   function validNumber(n) {
-    return (budget != n && isFinite(n) && !isNaN(n) && n != undefined);
+    return (n != null && isFinite(n) && !isNaN(n) && n != undefined);
   }
 
   const reservedMemory = flagArgs.reserved;
