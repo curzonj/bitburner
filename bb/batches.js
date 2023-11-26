@@ -152,7 +152,7 @@ export async function main(ns) {
     }
   }
 
-  async function batch(batchID, name) {
+  async function batch(name) {
     const weakenTime = ns.getWeakenTime(name);
     const growTime = ns.getGrowTime(name);
     const hackTime = ns.getHackTime(name);
