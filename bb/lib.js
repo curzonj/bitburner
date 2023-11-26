@@ -99,9 +99,9 @@ export function disableNoisyLogs(ns) {
   ns.disableLog("getServerSecurityLevel");
 }
 
-const rpcHack = "/bb/rpc-hack.js";
-const rpcGrow = "/bb/rpc-grow.js";
-const rpcWeaken = "/bb/rpc-weaken.js";
+export const rpcHack = "/bb/rpc-hack.js";
+export const rpcGrow = "/bb/rpc-grow.js";
+export const rpcWeaken = "/bb/rpc-weaken.js";
 export async function spawnThreads($, rpc, threads, arg) {
   const ns = $.ns;
 
