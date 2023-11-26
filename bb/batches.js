@@ -74,8 +74,8 @@ export async function main(ns) {
 
   function systemUnhealthy() {
     const list = activeTargets();
-    const inUse = getTotalMemoryInUse();
-    const installed = getTotalMemoryInstalled();
+    const inUse = lib.getTotalMemoryInUse(ns);
+    const installed = lib.getTotalMemoryInstalled(ns);
 
     if (inUse > installed * 0.98) return true;
 
@@ -92,8 +92,8 @@ export async function main(ns) {
   }
 
   function updateTuningParameters() {
-    const inUse = getTotalMemoryInUse();
-    const installed = getTotalMemoryInstalled();
+    const inUse = lib.getTotalMemoryInUse(ns);
+    const installed = lib.getTotalMemoryInstalled(ns);
 
     if (systemUnhealthy()) {
       hackPercentage -= 0.01;
