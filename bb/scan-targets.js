@@ -1,6 +1,10 @@
 import { validTargets, isServerStable } from 'bb/lib.js'
 
 export async function main(ns) {
+  const flagArgs = ns.flags([
+    ['all', false],
+  ]);
+
   const list = validTargets(ns);
   const myLevel = ns.getHackingLevel();
 
@@ -21,7 +25,7 @@ export async function main(ns) {
     const name = list[i];
 
     const levelReq = ns.getServerRequiredHackingLevel(name);
-    if (levelReq > myLevel / 2) continue;
+    if (!flagArgs.all && levelReq > myLevel / 2) continue;
 
     const maxMoney = ns.getServerMaxMoney(name);
     const money = ns.getServerMoneyAvailable(name);
