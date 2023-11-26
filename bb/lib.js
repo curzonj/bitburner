@@ -185,8 +185,8 @@ export async function rsyslog(ns, opts) {
   const { debug, trace } = opts;
 
   return Promise.all([
-    remoteDebugLogging(ns),
-    remoteTraceLogging(ns),
+    remoteDebugLogging(ns, debug),
+    remoteTraceLogging(ns, trace),
     remotePrintLogging(ns),
   ]);
 }
