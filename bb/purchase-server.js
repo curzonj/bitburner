@@ -1,13 +1,8 @@
 /** @param {NS} ns */
 export async function main(ns) {
-  const flagArgs = ns.flags([
-    ['ram', ns.getPurchasedServerMaxRam()],
-    ['debug', false],
-  ]);
-
   const maxServers = ns.getPurchasedServerLimit();
   const list = ns.getPurchasedServers();
-  const ram = flagArgs.ram;
+  const ram = ns.args[0] || ns.getPurchasedServerMaxRam()];
 
   if (list.length == maxServers) {
     ns.tprint("Deleting server: " + list[0]);
