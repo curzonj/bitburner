@@ -259,7 +259,7 @@ export async function main(ns) {
   }
 
   function isSteadyState() {
-    return firstCycleComplete && getConcurrency() < maxConcurrency && enoughTargetsStable();
+    return firstCycleComplete && getConcurrency(true) < maxConcurrency && enoughTargetsStable();
   }
 
   function updateTuningParameters() {
