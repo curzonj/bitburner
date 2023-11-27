@@ -275,7 +275,8 @@ export async function main(ns) {
 
   let hackPercentage = 0;
   async function bootstrapParameters() {
-    const available = lib.getTotalMemoryFree(ns) - flagArgs.reserved;
+    // 200 GB is a minimum buffer for batches itself early game
+    const available = lib.getTotalMemoryFree(ns) - flagArgs.reserved - 200;
     const rpcMemReqs = {};
     const rpcFuncs = [lib.rpcHack, lib.rpcGrow, lib.rpcWeaken];
     rpcFuncs.forEach(function (n) {
@@ -301,7 +302,7 @@ export async function main(ns) {
         }, 0);
 
       //if (flagArgs.trace) ns.print({ available, budget, hackPercentage });
-    } while(budget*3 < available);
+    } while(budget*4 < available);
 
     // The last round went over, so back it off
     hackPercentage -= 0.001;
