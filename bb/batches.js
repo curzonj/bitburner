@@ -149,7 +149,7 @@ export async function main(ns) {
 
     while (true) {
       const batchPrefix = 14;
-      margin = Math.min(margin, (ns.getHackTime() / (5*(batchPrefix+4)) ));
+      margin = Math.min(margin, (ns.getHackTime(name) / (5*(batchPrefix+4)) ));
 
       await ns.asleep(batchPrefix * margin);
 
@@ -187,7 +187,13 @@ export async function main(ns) {
       const nextBatchAt = dueAt.pop();
       const theory = (hackTime - growLead - ((batchPrefix - 2) * margin));
       const calc = nextBatchAt - Date.now() - margin - hackTime;
-      ns.print({ theory, calc });
+      ns.print({
+        margin, growLead,
+        dueAt, hackTime, weakenTime, growTime,
+        now: Date.now(), nextBatchAt,
+        theory, calc,
+      });
+      ns.exit();
       await ns.asleep(theory);
       // AFTER BLACKOUT
 
