@@ -236,7 +236,7 @@ export async function main(ns) {
         // AFTER BLACKOUT
 
         if (success && lib.isServerOptimal(ns, name)) {
-          await spawnThreads(lib.rpcHack, threads.hackQueue, name);
+          await spawnThreads(lib.rpcHack, Math.min(threads.hack, threads.hackQueue), name);
           nextBlackoutEnds = Date.now() + Math.ceil(ns.getHackTime(name) + (4*margin));
         }
       }
