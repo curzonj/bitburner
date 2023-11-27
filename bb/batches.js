@@ -9,6 +9,7 @@ export async function main(ns) {
     ['trace', false],
     ['tail', false],
     ['systemUnhealthy', 2],
+    ['maxThreads', 999999999999],
     ['maxUtil', 0.90],
     ['minUtil', 0.85],
     ['reserved', 10],
@@ -34,7 +35,6 @@ export async function main(ns) {
   if (systemUnhealthy()) {
     ns.tprint("system is unhealthy, preparing the servers first");
     skipHack = true;
-    maxThreads = 1;
     unhealthyThreshold = 0;
   }
 
