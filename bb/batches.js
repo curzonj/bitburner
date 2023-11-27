@@ -9,7 +9,6 @@ export async function main(ns) {
     ['trace', false],
     ['tail', false],
     ['maxThreads', 99999999999],
-    ['skipHack', false],
     ['systemUnhealthy', 2],
     ['maxUtil', 0.90],
     ['minUtil', 0.85],
@@ -28,13 +27,14 @@ export async function main(ns) {
   const targets = flagArgs.target.length > 0 ? flagArgs.target : lib.validTargets(ns);
   const maxCycleTime = targets.reduce((acc, n) => Math.max(acc, ns.getWeakenTime(n)), 0);
   const unhealthyCounters = {};
+  let skipHack = false;
+  let maxThreads = flagArgs.maxThreads;
 
   activeTargets().forEach(unhealthyCheck);
   if (systemUnhealthy()) {
-    ns.tprint("system is unhealthy, prepare the servers first");
-    ns.tprint("Memory : ", ns.formatPercent(lib.getTotalMemoryInUse(ns) /  lib.getTotalMemoryInstalled(ns)));
-    ns.tprint(activeTargets().filter(isUnhealthy));
-    ns.exit();
+    ns.tprint("system is unhealthy, preparing the servers first");
+    skipHack = true;
+    maxThreads = 1;
   }
 
   let firstCycleComplete = false;
@@ -84,8 +84,6 @@ export async function main(ns) {
   }
 
   function systemUnhealthy() {
-    if (flagArgs.skipHack) return false;
-
     const inUse = lib.getTotalMemoryInUse(ns);
     const installed = lib.getTotalMemoryInstalled(ns);
 
@@ -95,18 +93,23 @@ export async function main(ns) {
   }
 
   function updateTuningParameters() {
-    if (flagArgs.skipHack) return;
-
     const inUse = lib.getTotalMemoryInUse(ns);
     const installed = lib.getTotalMemoryInstalled(ns);
 
-    if (systemUnhealthy()) {
+    if (skipHack) {
+      if (inUse > installed * flagArgs.maxUtil) maxThreads -= 1;
+      if (firstCycleComplete && inUse < installed * flagArgs.minUtil) maxThreads += 1;
+      if (!systemUnhealthy()) skipHack = false;
+    } else if (systemUnhealthy()) {
       hackPercentage -= 0.01;
+      maxThreads -= 1;
     } else if (inUse > installed * flagArgs.maxUtil) {
       hackPercentage -= 0.001;
+      maxThreads -= 1;
     } else if (firstCycleComplete && inUse < installed * flagArgs.minUtil) {
       // +0.005 at 50% memory usage, converge faster when memory usage is low
       hackPercentage += ((installed - inUse) / (installed * 100));
+      maxThreads += 1;
     }
   }
 
@@ -168,7 +171,7 @@ export async function main(ns) {
 
       let success = true;
       const weakenTime = ns.getWeakenTime(name);
-      if (!flagArgs.skipHack) {
+      if (!skipHack) {
         success &&= await spawnThreads(lib.rpcWeaken, threads.hackWeaken, name);
         dueAt.push(Date.now()+Math.ceil(weakenTime));
       }
@@ -190,7 +193,7 @@ export async function main(ns) {
       }
 
       const hackTime = ns.getHackTime(name);
-      if (flagArgs.skipHack || dueAt.length < 3) {
+      if (skipHack || dueAt.length < 3) {
         await ns.asleep(hackTime - growLead - ((batchPrefix - 2) * margin));
         continue;
       }
