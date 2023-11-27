@@ -28,7 +28,7 @@ export async function main(ns) {
   const maxCycleTime = targets.reduce((acc, n) => Math.max(acc, ns.getWeakenTime(n)), 0);
   const unhealthyCounters = {};
   let skipHack = false;
-  let maxThreads = 99999999999;
+  let maxThreads = flagArgs.maxThreads;
   let unhealthyThreshold = Math.min(flagArgs.systemUnhealthy, targets.length - 1);
 
   activeTargets().forEach(unhealthyCheck);
