@@ -8,6 +8,7 @@ export async function main(ns) {
     ['debug', false],
     ['trace', false],
     ['tail', false],
+    ['initialMemoryFactor', 0.7],
     ['systemUnhealthy', 2],
     ['maxThreads', 999999999999],
     ['maxUtil', 0.90],
@@ -310,7 +311,7 @@ export async function main(ns) {
         }, 0);
 
       //if (flagArgs.trace) ns.print({ available, budget, hackPercentage });
-    } while(budget*4 < available);
+    } while(4 * budget * flagArgs.initialMemoryFactor < available);
 
     // The last round went over, so back it off
     hackPercentage -= 0.001;
