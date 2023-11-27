@@ -38,10 +38,11 @@ export async function main(ns) {
     unhealthyThreshold = 0;
   }
 
-  let firstCycleComplete = false;
-  async function reportFirstCycle() {
-    await ns.asleep(maxCycleTime);
-    firstCycleComplete = true;
+  async function parameterTuningLoop() {
+    while (true) {
+      await ns.asleep(maxCycleTime);
+      updateTuningParameters();
+    }
   }
 
   const spawnOpts = { ns, reservedMemory: flagArgs.reserved, shard: !flagArgs.trace, debug: flagArgs.debug };
@@ -107,7 +108,7 @@ export async function main(ns) {
       if (hackPercentage > 0.011) hackPercentage -= 0.01;
     } else if (inUse > installed * flagArgs.maxUtil) {
       if (hackPercentage > 0.001) hackPercentage -= 0.001;
-    } else if (firstCycleComplete && inUse < installed * flagArgs.minUtil && free > 200) {
+    } else if (inUse < installed * flagArgs.minUtil && free > 200) {
       if (free > 600) {
         // +0.005 at 50% memory usage, converge faster when memory usage is low
         hackPercentage += ((installed - inUse) / (installed * 100));
@@ -123,8 +124,6 @@ export async function main(ns) {
   const metrics = { moneyEarned: 0 };
   async function monitoringLoop() {
     while (true) {
-      updateTuningParameters();
-
       const money = metrics.moneyEarned;
       metrics.moneyEarned = 0;
 
@@ -320,6 +319,6 @@ export async function main(ns) {
 
   await Promise.all([
     targets.map(loop),
-    reportFirstCycle(),
+    parameterTuningLoop(),
   ].flat());
 }
