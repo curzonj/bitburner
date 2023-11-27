@@ -64,6 +64,8 @@ export async function main(ns) {
 
   function unhealthyCheck(name) {
     unhealthyCounters[name] = !isOptimal(name);
+
+    return isUnhealthy(name);
   }
 
   function isUnhealthy(name) {
@@ -143,12 +145,14 @@ export async function main(ns) {
     }
 
     let i = 1;
+    let safety = 1;
     while (true) {
-      await batch(i++, name);
+      if (unhealthyCheck(name)) safety++;
+      await batch(i++, name, safety);
     }
   }
 
-  async function batch(batchCount, name) {
+  async function batch(batchCount, name, safety) {
     const weakenTime = ns.getWeakenTime(name);
     const growTime = ns.getGrowTime(name);
     const hackTime = ns.getHackTime(name);
@@ -157,9 +161,7 @@ export async function main(ns) {
       ns.print({ name, weakenTime, growTime, hackTime });
     }
 
-    unhealthyCheck(name);
-
-    const threads = calculateThreads(name);
+    const threads = calculateThreads(name, safety);
 
     if (threads == null) {
       return;
@@ -187,7 +189,7 @@ export async function main(ns) {
     }
   }
 
-  function calculateThreads(name) {
+  function calculateThreads(name, safety=0) {
     const myLevel = ns.getHackingLevel();
     if (ns.getServerRequiredHackingLevel(name) > myLevel) {
       return null;
@@ -206,7 +208,7 @@ export async function main(ns) {
     const threads = {
       name,
       hack: Math.ceil(hackPercentage / ns.hackAnalyze(name)),
-      grow: Math.ceil(ns.growthAnalyze(name, growthFactor)) + 1,
+      grow: Math.ceil(ns.growthAnalyze(name, growthFactor)) + safety,
     }
 
     const extraDifficulty = hackDifficulty - minDifficulty;
@@ -214,8 +216,8 @@ export async function main(ns) {
     const weakenAnalyze = ns.weakenAnalyze(1);
     const hackAnalyze = ns.hackAnalyzeSecurity(threads.hack, name);
 
-    threads.growWeaken = Math.ceil((growthAnalyze+extraDifficulty) / weakenAnalyze) + 1;
-    threads.hackWeaken = Math.ceil(hackAnalyze / weakenAnalyze) + 1;
+    threads.growWeaken = Math.ceil((growthAnalyze+extraDifficulty) / weakenAnalyze) + safety;
+    threads.hackWeaken = Math.ceil(hackAnalyze / weakenAnalyze) + safety;
 
     return threads;
   }
