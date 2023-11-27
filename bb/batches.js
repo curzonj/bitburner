@@ -220,16 +220,17 @@ export async function main(ns) {
         ns.print(`WARNING: ${name} hack late by ${nextBlackoutEnds - hackStartsAt}ms`);
 
         await ns.asleep(nextBlackoutEnds - Date.now());
-        continue;
+      } else {
+        await ns.asleep(hackStartsAt - Date.now());
+        // AFTER BLACKOUT
+
+        if (success && lib.isServerOptimal(ns, name)) {
+          await spawnThreads(lib.rpcHack, threads.hack, name);
+          nextBlackoutEnds = Date.now() + Math.ceil(ns.getHackTime(name) + (4*margin));
+        }
       }
 
-      await ns.asleep(hackStartsAt - Date.now());
-      // AFTER BLACKOUT
-
-      if (success && lib.isServerOptimal(ns, name)) {
-        await spawnThreads(lib.rpcHack, threads.hack, name);
-        nextBlackoutEnds = Date.now() + Math.ceil(ns.getHackTime(name) + (4*margin));
-      }
+      if (!success && hackPercentage > 0.001) hackPercentage -= 0.001;
     }
   }
 
@@ -294,7 +295,7 @@ export async function main(ns) {
         }, 0);
 
       //if (flagArgs.trace) ns.print({ available, budget, hackPercentage });
-    } while(budget*4 < available);
+    } while(budget*3 < available);
 
     // The last round went over, so back it off
     hackPercentage -= 0.001;
