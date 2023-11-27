@@ -184,7 +184,7 @@ export async function main(ns) {
       }
 
       // BEFORE BLACKOUT
-      const nextBatchAt = dueAt.unshift();
+      const nextBatchAt = dueAt.shift();
       const theory = (hackTime - growLead - ((batchPrefix - 2) * margin));
       const calc = nextBatchAt - Date.now() - margin - hackTime;
       ns.print({
