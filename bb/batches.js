@@ -189,7 +189,6 @@ export async function main(ns) {
       // BEFORE BLACKOUT
       const nextBatchAt = dueAt.shift();
       const hackStartsAt = Math.floor(nextBatchAt - hackTime - margin);
-      const calc = hackStartsAt - Date.now();
       if (nextBlackoutEnds && hackStartsAt < nextBlackoutEnds) {
         if (flagArgs.trace) {
           const theory = Math.ceil((hackTime - growLead - ((batchPrefix - 2) * margin)));
@@ -197,15 +196,16 @@ export async function main(ns) {
             margin, growLead,
             dueAt, hackTime, weakenTime, growTime,
             now: Date.now(), nextBatchAt, nextBlackoutEnds, hackStartsAt,
-            theory, calc,
+            theory,
           });
         }
+        ns.print(`WARNING: ${name} hack late by ${nextBlackoutEnds - hackStartsAt}ms`);
 
-        await ns.asleep(nextBlackEnds - Date.now());
+        await ns.asleep(nextBlackoutEnds - Date.now());
         continue;
       }
 
-      await ns.asleep(calc);
+      await ns.asleep(hackStartsAt - Date.now());
       // AFTER BLACKOUT
 
       if (success && lib.isServerOptimal(ns, name)) {
