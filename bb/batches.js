@@ -9,6 +9,7 @@ export async function main(ns) {
     ['trace', false],
     ['tail', false],
     ['maxThreads', 99999999999],
+    ['skipHack', false],
     ['systemUnhealthy', 2],
     ['maxUtil', 0.90],
     ['minUtil', 0.85],
@@ -83,6 +84,8 @@ export async function main(ns) {
   }
 
   function systemUnhealthy() {
+    if (flagArgs.skipHack) return false;
+
     const inUse = lib.getTotalMemoryInUse(ns);
     const installed = lib.getTotalMemoryInstalled(ns);
 
@@ -92,6 +95,8 @@ export async function main(ns) {
   }
 
   function updateTuningParameters() {
+    if (flagArgs.skipHack) return;
+
     const inUse = lib.getTotalMemoryInUse(ns);
     const installed = lib.getTotalMemoryInstalled(ns);
 
@@ -162,8 +167,10 @@ export async function main(ns) {
       if (threads == null) return;
 
       const weakenTime = ns.getWeakenTime(name);
-      let success = await spawnThreads(lib.rpcWeaken, threads.hackWeaken, name);
-      dueAt.push(Date.now()+Math.ceil(weakenTime));
+      if (!flagArgs.skipHack) {
+        let success = await spawnThreads(lib.rpcWeaken, threads.hackWeaken, name);
+        dueAt.push(Date.now()+Math.ceil(weakenTime));
+      }
 
       await ns.asleep(margin * 2);
       if (success) {
@@ -182,7 +189,7 @@ export async function main(ns) {
       }
 
       const hackTime = ns.getHackTime(name);
-      if (dueAt.length < 3) {
+      if (flagArgs.skipHack || dueAt.length < 3) {
         await ns.asleep(hackTime - growLead - ((batchPrefix - 2) * margin));
         continue;
       }
