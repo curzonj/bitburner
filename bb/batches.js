@@ -178,9 +178,7 @@ export async function main(ns) {
       await ns.asleep(batchPrefix * margin);
 
       if (unhealthyCheck(name)) safety++;
-
-      const queueSteal = (queue.length >= 2) ?  queue[0].steal : null;
-      const threads = calculateThreads(name, safety, queueSteal);
+      const threads = calculateThreads(name, safety);
       if (threads == null) return;
 
       let success = true;
@@ -189,7 +187,7 @@ export async function main(ns) {
         success &&= await spawnThreads(lib.rpcWeaken, threads.hackWeaken, name);
         queue.push({
           dueAt: Date.now()+Math.ceil(weakenTime),
-          steal: hackPercentage,
+          hackThreads: threads.hack,
         });
       }
 
@@ -216,7 +214,7 @@ export async function main(ns) {
       }
 
       // BEFORE BLACKOUT
-      const { dueAt: nextBatchAt } = queue.shift();
+      const { dueAt: nextBatchAt, hackThreads } = queue.shift();
       const hackStartsAt = Math.floor(nextBatchAt - hackTime - margin);
       if (nextBlackoutEnds && hackStartsAt < nextBlackoutEnds) {
         if (flagArgs.trace) {
@@ -236,7 +234,7 @@ export async function main(ns) {
         // AFTER BLACKOUT
 
         if (success && lib.isServerOptimal(ns, name)) {
-          await spawnThreads(lib.rpcHack, Math.min(threads.hack, threads.hackQueue), name);
+          await spawnThreads(lib.rpcHack, Math.min(threads.hack, hackThreads), name);
           nextBlackoutEnds = Date.now() + Math.ceil(ns.getHackTime(name) + (4*margin));
         }
       }
@@ -245,7 +243,7 @@ export async function main(ns) {
     }
   }
 
-  function calculateThreads(name, safety=0, queueSteal=nil) {
+  function calculateThreads(name, safety=0) {
     const myLevel = ns.getHackingLevel();
     if (ns.getServerRequiredHackingLevel(name) > myLevel) {
       return null;
@@ -265,10 +263,6 @@ export async function main(ns) {
       name,
       hack: Math.min(Math.ceil(maxThreads), Math.ceil(hackPercentage / ns.hackAnalyze(name))),
       grow: Math.min(Math.ceil(maxThreads), Math.ceil(ns.growthAnalyze(name, growthFactor)) + safety),
-    }
-
-    if (queueSteal) {
-      threads.hackQueue = Math.min(Math.ceil(maxThreads), Math.ceil(queueSteal / ns.hackAnalyze(name)))
     }
 
     const extraDifficulty = hackDifficulty - minDifficulty;
