@@ -103,13 +103,15 @@ export async function main(ns) {
         unhealthyThreshold = Math.min(flagArgs.systemUnhealthy, targets.length - 1);
       }
     } else if (systemUnhealthy()) {
-      hackPercentage -= 0.01;
+      if (hackPercentage > 0.011) hackPercentage -= 0.01;
     } else if (inUse > installed * flagArgs.maxUtil) {
-      hackPercentage -= 0.001;
+      if (hackPercentage > 0.001) hackPercentage -= 0.001;
     } else if (firstCycleComplete && inUse < installed * flagArgs.minUtil) {
       // +0.005 at 50% memory usage, converge faster when memory usage is low
       hackPercentage += ((installed - inUse) / (installed * 100));
     }
+
+    hackPercentage = Math.max(hackPercentage, 0.001);
   }
 
   const metrics = { moneyEarned: 0 };
@@ -291,9 +293,7 @@ export async function main(ns) {
             rpcMemReqs[lib.rpcHack] * threads.hack;
         }, 0);
 
-      if (flagArgs.trace) ns.print({ available, budget, hackPercentage });
-
-      await ns.sleep(10);
+      //if (flagArgs.trace) ns.print({ available, budget, hackPercentage });
     } while(budget*4 < available);
 
     // The last round went over, so back it off
