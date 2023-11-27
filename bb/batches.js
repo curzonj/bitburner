@@ -165,11 +165,8 @@ export async function main(ns) {
       return;
     }
 
-    let memoryAvailable = true;
-
-    if (lib.isServerOptimal(ns, name)) {
-      memoryAvailable &&= await spawnThreads(lib.rpcWeaken, threads.hackWeaken, name);
-    }
+    await ns.asleep(13 * margin);
+    let memoryAvailable = await spawnThreads(lib.rpcWeaken, threads.hackWeaken, name);
 
     await ns.asleep(margin * 2);
     if (memoryAvailable) {
@@ -182,7 +179,7 @@ export async function main(ns) {
       memoryAvailable &&= await spawnThreads(lib.rpcGrow, threads.grow, name);
     }
 
-    await ns.asleep(hackTime - growLead + (2 * margin));
+    await ns.asleep(hackTime - growLead + (11 * margin));
     if (batchCount >= 3 && lib.isServerOptimal(ns, name) && memoryAvailable) {
       await spawnThreads(lib.rpcHack, threads.hack, name);
     }
