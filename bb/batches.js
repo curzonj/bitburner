@@ -187,7 +187,7 @@ export async function main(ns) {
       const nextBatchAt = dueAt.shift();
       const theory = Math.ceil((hackTime - growLead - ((batchPrefix - 2) * margin)));
       const calc = Math.ceil(nextBatchAt - Date.now() - margin - hackTime);
-      ns.asleep(nextBatchAt - Date.now).then(() => ns.print("hack weaken due now"));
+      ns.asleep(nextBatchAt - Date.now()).then(() => ns.print("hack weaken due now"));
       ns.print({
         margin, growLead,
         dueAt, hackTime, weakenTime, growTime,
