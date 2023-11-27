@@ -190,7 +190,7 @@ export async function main(ns) {
       const nextBatchAt = dueAt.shift();
       const hackStartsAt = Math.floor(nextBatchAt - hackTime - margin);
       const calc = hackStartsAt - Date.now();
-      if (nextBlackoutEnds && hackStart < nextBlackoutEnds) {
+      if (nextBlackoutEnds && hackStartsAt < nextBlackoutEnds) {
         if (flagArgs.trace) {
           const theory = Math.ceil((hackTime - growLead - ((batchPrefix - 2) * margin)));
           ns.print({
