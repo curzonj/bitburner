@@ -166,7 +166,7 @@ export async function main(ns) {
     }
 
     let safety = 1;
-    let dueAt = [];
+    let queue = [];
     let margin = 30;
     let nextBlackoutEnds = null;
 
@@ -177,14 +177,19 @@ export async function main(ns) {
       await ns.asleep(batchPrefix * margin);
 
       if (unhealthyCheck(name)) safety++;
-      const threads = calculateThreads(name, safety);
+
+      const queueSteal = (queue.length >= 2) ?  queue[0].steal : null;
+      const threads = calculateThreads(name, safety, queueSteal);
       if (threads == null) return;
 
       let success = true;
       const weakenTime = ns.getWeakenTime(name);
       if (!skipHack) {
         success &&= await spawnThreads(lib.rpcWeaken, threads.hackWeaken, name);
-        dueAt.push(Date.now()+Math.ceil(weakenTime));
+        queue.push({
+          dueAt: Date.now()+Math.ceil(weakenTime),
+          steal: hackPercentage,
+        });
       }
 
       await ns.asleep(margin * 2);
@@ -204,13 +209,13 @@ export async function main(ns) {
       }
 
       const hackTime = ns.getHackTime(name);
-      if (skipHack || dueAt.length < 3) {
+      if (skipHack || queue.length < 3) {
         await ns.asleep(hackTime - growLead - ((batchPrefix - 2) * margin));
         continue;
       }
 
       // BEFORE BLACKOUT
-      const nextBatchAt = dueAt.shift();
+      const { dueAt: nextBatchAt } = queue.shift();
       const hackStartsAt = Math.floor(nextBatchAt - hackTime - margin);
       if (nextBlackoutEnds && hackStartsAt < nextBlackoutEnds) {
         if (flagArgs.trace) {
@@ -218,7 +223,7 @@ export async function main(ns) {
           ns.print(`WARNING: ${name} hack late by ${nextBlackoutEnds - hackStartsAt}ms`);
           ns.print({
             margin, growLead,
-            dueAt, hackTime, weakenTime, growTime,
+            queue, hackTime, weakenTime, growTime,
             now: Date.now(), nextBatchAt, nextBlackoutEnds, hackStartsAt,
             theory,
           });
@@ -230,7 +235,7 @@ export async function main(ns) {
         // AFTER BLACKOUT
 
         if (success && lib.isServerOptimal(ns, name)) {
-          await spawnThreads(lib.rpcHack, threads.hack, name);
+          await spawnThreads(lib.rpcHack, threads.hackQueue, name);
           nextBlackoutEnds = Date.now() + Math.ceil(ns.getHackTime(name) + (4*margin));
         }
       }
@@ -239,7 +244,7 @@ export async function main(ns) {
     }
   }
 
-  function calculateThreads(name, safety=0) {
+  function calculateThreads(name, safety=0, queueSteal=nil) {
     const myLevel = ns.getHackingLevel();
     if (ns.getServerRequiredHackingLevel(name) > myLevel) {
       return null;
@@ -259,6 +264,10 @@ export async function main(ns) {
       name,
       hack: Math.min(Math.ceil(maxThreads), Math.ceil(hackPercentage / ns.hackAnalyze(name))),
       grow: Math.min(Math.ceil(maxThreads), Math.ceil(ns.growthAnalyze(name, growthFactor)) + safety),
+    }
+
+    if (queueSteal) {
+      threads.hackQueue = Math.min(Math.ceil(maxThreads), Math.ceil(queueSteal / ns.hackAnalyze(name)))
     }
 
     const extraDifficulty = hackDifficulty - minDifficulty;
