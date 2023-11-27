@@ -29,7 +29,7 @@ export async function main(ns) {
   const unhealthyCounters = {};
   let skipHack = false;
   let maxThreads = flagArgs.maxThreads;
-  let unhealthyThreshold = flagArgs.systemUnhealthy;
+  let unhealthyThreshold = Math.min(flagArgs.systemUnhealthy, targets.length - 1);
 
   activeTargets().forEach(unhealthyCheck);
   if (systemUnhealthy()) {
@@ -103,7 +103,7 @@ export async function main(ns) {
       if (firstCycleComplete && inUse < installed * flagArgs.minUtil) maxThreads += 1;
       if (!systemUnhealthy()) {
         skipHack = false;
-        unhealthyThreshold = flagArgs.systemUnhealthy;
+        unhealthyThreshold = Math.min(flagArgs.systemUnhealthy, targets.length - 1);
       }
     } else if (systemUnhealthy()) {
       hackPercentage -= 0.01;
