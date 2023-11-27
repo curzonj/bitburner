@@ -186,7 +186,7 @@ export async function main(ns) {
       // BEFORE BLACKOUT
       const nextBatchAt = dueAt.shift();
       const theory = Math.ceil((hackTime - growLead - ((batchPrefix - 2) * margin)));
-      const calc = Matth.ciel(nextBatchAt - Date.now() - margin - hackTime);
+      const calc = Math.ciel(nextBatchAt - Date.now() - margin - hackTime);
       ns.asleep(nextBatchAt - Date.now).then(() => ns.print("hack weaken due now"));
       ns.print({
         margin, growLead,
