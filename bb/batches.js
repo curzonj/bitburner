@@ -126,6 +126,7 @@ export async function main(ns) {
       const freeMem = installed - inUse;
 
       const data = {
+        maxThreads,
         unhealthy: unhealthyCount(),
         steal: hackPercentage,
         free: ns.formatRam(freeMem),
@@ -134,7 +135,11 @@ export async function main(ns) {
       };
 
       try {
-        ns.print(ns.sprintf(" %(steal)' 5.3f / %(unhealthy)' 2d  Mem: %(usedPct)' 6s / %(free)' 8s  $ %(earned)' 8s",data));
+        if (skipHack) {
+          ns.print(ns.sprintf(" %(maxThreads)' 2d / %(unhealthy)' 2d  Mem: %(usedPct)' 6s / %(free)' 8s  $ %(earned)' 8s",data));
+        } else {
+          ns.print(ns.sprintf(" %(steal)' 5.3f / %(unhealthy)' 2d  Mem: %(usedPct)' 6s / %(free)' 8s  $ %(earned)' 8s",data));
+        }
       } catch(e) {
         ns.print("ERROR: ", data);
       }
