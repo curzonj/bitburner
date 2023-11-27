@@ -2,6 +2,8 @@ import * as lib from 'bb/lib.js'
 
 /** @param {NS} ns */
 export async function main(ns) {
+  lib.resizeTail(ns);
+
   const flagArgs = ns.flags([
     ['debug', false],
     ['trace', false],
@@ -185,7 +187,7 @@ export async function main(ns) {
       }
 
       // BEFORE BLACKOUT
-      nextBatchAt = dueAt.shift();
+      const nextBatchAt = dueAt.shift();
       const hackStartAt = Math.floor(nextBatchAt - hackTime - margin);
       const calc = hackStartsAt - Date.now();
       if (nextBlackoutEnds && hackStart < nextBlackoutEnds) {
@@ -287,7 +289,6 @@ export async function main(ns) {
   accounting();
   lib.rsyslog(ns, flagArgs);
 
-  lib.resizeTail(ns);
   if (!flagArgs.trace) monitoringLoop();
 
   // Let the monitoring loops get started
