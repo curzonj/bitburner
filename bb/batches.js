@@ -21,7 +21,6 @@ export async function main(ns) {
     ns.disableLog("ALL");
   }
 
-  const margin = 30;
   const targets = flagArgs.target.length > 0 ? flagArgs.target : lib.validTargets(ns);
   const maxCycleTime = targets.reduce((acc, n) => Math.max(acc, ns.getWeakenTime(n)), 0);
   const unhealthyCounters = {};
@@ -144,48 +143,54 @@ export async function main(ns) {
       await ns.asleep(60000);
     }
 
-    let i = 1;
     let safety = 1;
+    let dueAt = [];
+    let margin = 30;
+
     while (true) {
+      const batchPrefix = 14;
+      margin = Math.min(margin, (ns.getHackTime() / (5*(batchPrefix+4)) ));
+
+      await ns.asleep(batchPrefix * margin);
+
       if (unhealthyCheck(name)) safety++;
-      await batch(i++, name, safety);
-    }
-  }
+      const threads = calculateThreads(name, safety);
+      if (threads == null) return;
 
-  async function batch(batchCount, name, safety) {
-    const weakenTime = ns.getWeakenTime(name);
-    const growTime = ns.getGrowTime(name);
-    const hackTime = ns.getHackTime(name);
+      let success = await spawnThreads(lib.rpcWeaken, threads.hackWeaken, name);
+      const weakenTime = ns.getWeakenTime(name);
+      dueAt.push(Date.now()+weakenTime);
 
-    if (flagArgs.trace) {
-      ns.print({ name, weakenTime, growTime, hackTime });
-    }
+      await ns.asleep(margin * 2);
+      if (success) {
+        success &&= await spawnThreads(lib.rpcWeaken, threads.growWeaken, name);
+      }
 
-    const threads = calculateThreads(name, safety);
+      const growTime = ns.getGrowTime(name);
+      const growLead = weakenTime - growTime - margin;
+      await ns.asleep(growLead);
+      const currentGrowTime = ns.getGrowTime(name);
+      if (currentGrowTime < growTime) {
+        await ns.asleep(growTime - currentGrowTime);
+      }
+      if (success) {
+        success &&= await spawnThreads(lib.rpcGrow, threads.grow, name);
+      }
 
-    if (threads == null) {
-      return;
-    }
+      const hackTime = ns.getHackTime(name);
+      if (dueAt.length < 3) {
+        await ns.asleep(hackTime - growLead - ((batchPrefix - 2) * margin));
+        continue;
+      }
 
-    const batchPrefix = 14;
+      // BEFORE BLACKOUT
+      const nextBatchAt = dueAt.pop();
+      await ns.asleep(nextBatchAt - Date.now() - margin - hackTime);
+      // AFTER BLACKOUT
 
-    await ns.asleep(batchPrefix * margin);
-    let memoryAvailable = await spawnThreads(lib.rpcWeaken, threads.hackWeaken, name);
-
-    await ns.asleep(margin * 2);
-    if (memoryAvailable) {
-      memoryAvailable &&= await spawnThreads(lib.rpcWeaken, threads.growWeaken, name);
-    }
-
-    const growLead = weakenTime - growTime - margin;
-    await ns.asleep(growLead);
-    if (memoryAvailable) {
-      memoryAvailable &&= await spawnThreads(lib.rpcGrow, threads.grow, name);
-    }
-
-    await ns.asleep(hackTime - growLead - ((batchPrefix - 2) * margin));
-    if (batchCount >= 3 && lib.isServerOptimal(ns, name) && memoryAvailable) {
-      await spawnThreads(lib.rpcHack, threads.hack, name);
+      if (success && lib.isServerOptimal(ns, name)) {
+        await spawnThreads(lib.rpcHack, threads.hack, name);
+      }
     }
   }
 
