@@ -107,8 +107,8 @@ export async function main(ns) {
       if (hackPercentage > 0.011) hackPercentage -= 0.01;
     } else if (inUse > installed * flagArgs.maxUtil) {
       if (hackPercentage > 0.001) hackPercentage -= 0.001;
-    } else if (firstCycleComplete && inUse < installed * flagArgs.minUtil && free > 150) {
-      if (free > 400) {
+    } else if (firstCycleComplete && inUse < installed * flagArgs.minUtil && free > 200) {
+      if (free > 600) {
         // +0.005 at 50% memory usage, converge faster when memory usage is low
         hackPercentage += ((installed - inUse) / (installed * 100));
       } else {
