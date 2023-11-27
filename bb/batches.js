@@ -185,7 +185,10 @@ export async function main(ns) {
 
       // BEFORE BLACKOUT
       const nextBatchAt = dueAt.pop();
-      await ns.asleep(nextBatchAt - Date.now() - margin - hackTime);
+      const theory = (hackTime - growLead - ((batchPrefix - 2) * margin));
+      const calc = nextBatchAt - Date.now() - margin - hackTime;
+      ns.print({ theory, calc });
+      await ns.asleep(calc);
       // AFTER BLACKOUT
 
       if (success && lib.isServerOptimal(ns, name)) {
