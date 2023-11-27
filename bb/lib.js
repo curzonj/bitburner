@@ -27,7 +27,7 @@ export function validTargets(ns) {
     .filter(s => ns.hasRootAccess(s))
     .filter(s => ns.getServerMaxMoney(s) > 0)
     .filter(s => s != "home" && !s.startsWith("pserv"))
-    .filter(s => ns.getServerRequiredHackingLevel(s) < lvl);
+    .filter(s => ns.getServerRequiredHackingLevel(s) <= lvl);
 }
 
 export function bestGrindTarget(ns) {
