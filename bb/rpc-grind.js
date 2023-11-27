@@ -4,6 +4,12 @@ export async function main(ns) {
 
   while (true) {
     await ns.weaken(target);
-    await ns.grow(target);
+
+    const moneyMax = ns.getServerMaxMoney(target);
+    const moneyAvailable = ns.getServerMoneyAvailable(target);
+
+    if (moneyMax > moneyAvailable) {
+      await ns.grow(target);
+    }
   }
 }
