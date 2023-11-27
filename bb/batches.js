@@ -188,7 +188,7 @@ export async function main(ns) {
       const theory = (hackTime - growLead - ((batchPrefix - 2) * margin));
       const calc = nextBatchAt - Date.now() - margin - hackTime;
       ns.print({ theory, calc });
-      await ns.asleep(calc);
+      await ns.asleep(theory);
       // AFTER BLACKOUT
 
       if (success && lib.isServerOptimal(ns, name)) {
