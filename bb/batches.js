@@ -8,6 +8,7 @@ export async function main(ns) {
     ['debug', false],
     ['trace', false],
     ['tail', false],
+    ['maxThreads', 99999999999],
     ['systemUnhealthy', 2],
     ['maxUtil', 0.90],
     ['minUtil', 0.85],
@@ -233,8 +234,8 @@ export async function main(ns) {
 
     const threads = {
       name,
-      hack: Math.ceil(hackPercentage / ns.hackAnalyze(name)),
-      grow: Math.ceil(ns.growthAnalyze(name, growthFactor)) + safety,
+      hack: Math.min(flagArgs.maxThreads, Math.ceil(hackPercentage / ns.hackAnalyze(name))),
+      grow: Math.min(flagArgs.maxThreads, Math.ceil(ns.growthAnalyze(name, growthFactor)) + safety),
     }
 
     const extraDifficulty = hackDifficulty - minDifficulty;
