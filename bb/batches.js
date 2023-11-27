@@ -157,8 +157,8 @@ export async function main(ns) {
       const threads = calculateThreads(name, safety);
       if (threads == null) return;
 
-      let success = await spawnThreads(lib.rpcWeaken, threads.hackWeaken, name);
       const weakenTime = ns.getWeakenTime(name);
+      let success = await spawnThreads(lib.rpcWeaken, threads.hackWeaken, name);
       dueAt.push(Date.now()+weakenTime);
 
       await ns.asleep(margin * 2);
