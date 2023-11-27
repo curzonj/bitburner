@@ -216,6 +216,7 @@ export async function main(ns) {
       if (nextBlackoutEnds && hackStartsAt < nextBlackoutEnds) {
         if (flagArgs.trace) {
           const theory = Math.ceil((hackTime - growLead - ((batchPrefix - 2) * margin)));
+          ns.print(`WARNING: ${name} hack late by ${nextBlackoutEnds - hackStartsAt}ms`);
           ns.print({
             margin, growLead,
             dueAt, hackTime, weakenTime, growTime,
@@ -223,7 +224,6 @@ export async function main(ns) {
             theory,
           });
         }
-        ns.print(`WARNING: ${name} hack late by ${nextBlackoutEnds - hackStartsAt}ms`);
 
         await ns.asleep(nextBlackoutEnds - Date.now());
       } else {
