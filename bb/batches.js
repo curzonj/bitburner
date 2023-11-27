@@ -194,7 +194,7 @@ export async function main(ns) {
         now: Date.now(), nextBatchAt,
         theory, calc,
       });
-      await ns.asleep(theory);
+      await ns.asleep(calc);
       // AFTER BLACKOUT
 
       if (success && lib.isServerOptimal(ns, name)) {
