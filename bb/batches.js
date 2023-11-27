@@ -28,7 +28,7 @@ export async function main(ns) {
   const maxCycleTime = targets.reduce((acc, n) => Math.max(acc, ns.getWeakenTime(n)), 0);
   const unhealthyCounters = {};
   let skipHack = false;
-  let maxThreads = flagArgs.maxThreads;
+  const maxThreads = flagArgs.maxThreads;
   let unhealthyThreshold = Math.min(flagArgs.systemUnhealthy, targets.length - 1);
 
   activeTargets().forEach(unhealthyCheck);
@@ -98,22 +98,17 @@ export async function main(ns) {
     const installed = lib.getTotalMemoryInstalled(ns);
 
     if (skipHack) {
-      if (maxThreads > 1 && inUse > installed * flagArgs.maxUtil) maxThreads -= 0.1;
-      if (firstCycleComplete && inUse < installed * flagArgs.minUtil) maxThreads += 0.1;
       if (!systemUnhealthy()) {
         skipHack = false;
         unhealthyThreshold = Math.min(flagArgs.systemUnhealthy, targets.length - 1);
       }
     } else if (systemUnhealthy()) {
       hackPercentage -= 0.01;
-      maxThreads -= 1;
     } else if (inUse > installed * flagArgs.maxUtil) {
       hackPercentage -= 0.001;
-      maxThreads -= 1;
     } else if (firstCycleComplete && inUse < installed * flagArgs.minUtil) {
       // +0.005 at 50% memory usage, converge faster when memory usage is low
       hackPercentage += ((installed - inUse) / (installed * 100));
-      maxThreads += 1;
     }
   }
 
