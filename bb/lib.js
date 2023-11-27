@@ -161,9 +161,10 @@ export async function spawnThreads($, rpc, threads, arg) {
   }
 }
 
-export function showTail(ns) {
-  ns.tail();
+export function resizeTail(ns) {
+  const [ height, width ] = ns.ui.windowSize();
   ns.moveTail(0, 0);
+  ns.resizeTail(height-100, width-100);
 }
 
 export async function listen(ns, portNumber, fn) {

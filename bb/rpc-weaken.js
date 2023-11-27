@@ -1,7 +1,7 @@
 /** @param {NS} ns */
 export async function main(ns) {
   const target = ns.args[0];
-  const weakenTime = ns.getHackTime(target);
+  const weakenTime = ns.getWeakenTime(target);
   const start = Date.now();
   const result = await ns.weaken(target);
   const end = Date.now();

@@ -187,15 +187,21 @@ export async function main(ns) {
       const nextBatchAt = dueAt.shift();
       const theory = Math.ceil((hackTime - growLead - ((batchPrefix - 2) * margin)));
       const calc = Math.ceil(nextBatchAt - Date.now() - margin - hackTime);
-      if (flagArgs.trace) {
-        ns.print({
-          margin, growLead,
-          dueAt, hackTime, weakenTime, growTime,
-          now: Date.now(), nextBatchAt,
-          theory, calc,
-        });
+
+      // Calc is sometimes broken, not sure why
+      if (calc > theory - margin && calc < theory + margin) {
+        await ns.asleep(calc);
+      } else {
+        if (flagArgs.trace) {
+          ns.print({
+            margin, growLead,
+            dueAt, hackTime, weakenTime, growTime,
+            now: Date.now(), nextBatchAt,
+            theory, calc,
+          });
+        }
+        await ns.asleep(theory);
       }
-      await ns.asleep(theory);
       // AFTER BLACKOUT
 
       if (success && lib.isServerOptimal(ns, name)) {
@@ -278,7 +284,7 @@ export async function main(ns) {
   accounting();
   lib.rsyslog(ns, flagArgs);
 
-  if (flagArgs.tail) lib.showTail(ns);
+  lib.resizeTail(ns);
   if (!flagArgs.trace) monitoringLoop();
 
   // Let the monitoring loops get started
