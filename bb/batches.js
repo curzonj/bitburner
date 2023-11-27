@@ -206,7 +206,7 @@ export async function main(ns) {
     const threads = {
       name,
       hack: Math.ceil(hackPercentage / ns.hackAnalyze(name)),
-      grow: Math.ceil(ns.growthAnalyze(name, growthFactor)),
+      grow: Math.ceil(ns.growthAnalyze(name, growthFactor)) + 1,
     }
 
     const extraDifficulty = hackDifficulty - minDifficulty;
@@ -214,8 +214,8 @@ export async function main(ns) {
     const weakenAnalyze = ns.weakenAnalyze(1);
     const hackAnalyze = ns.hackAnalyzeSecurity(threads.hack, name);
 
-    threads.growWeaken = Math.ceil((growthAnalyze+extraDifficulty) / weakenAnalyze);
-    threads.hackWeaken = Math.ceil(hackAnalyze / weakenAnalyze);
+    threads.growWeaken = Math.ceil((growthAnalyze+extraDifficulty) / weakenAnalyze) + 1;
+    threads.hackWeaken = Math.ceil(hackAnalyze / weakenAnalyze) + 1;
 
     return threads;
   }
