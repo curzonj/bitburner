@@ -29,12 +29,14 @@ export async function main(ns) {
   const unhealthyCounters = {};
   let skipHack = false;
   let maxThreads = flagArgs.maxThreads;
+  let unhealthyThreshold = flagArgs.systemUnhealthy;
 
   activeTargets().forEach(unhealthyCheck);
   if (systemUnhealthy()) {
     ns.tprint("system is unhealthy, preparing the servers first");
     skipHack = true;
     maxThreads = 1;
+    unhealthyThreshold = 0;
   }
 
   let firstCycleComplete = false;
@@ -89,7 +91,7 @@ export async function main(ns) {
 
     if (inUse > installed * 0.98) return true;
 
-    return unhealthyCount() > flagArgs.systemUnhealthy;
+    return unhealthyCount() > unhealthyThreshold;
   }
 
   function updateTuningParameters() {
@@ -99,7 +101,10 @@ export async function main(ns) {
     if (skipHack) {
       if (inUse > installed * flagArgs.maxUtil) maxThreads -= 1;
       if (firstCycleComplete && inUse < installed * flagArgs.minUtil) maxThreads += 1;
-      if (!systemUnhealthy()) skipHack = false;
+      if (!systemUnhealthy()) {
+        skipHack = false;
+        unhealthyThreshold = flagArgs.systemUnhealthy;
+      }
     } else if (systemUnhealthy()) {
       hackPercentage -= 0.01;
       maxThreads -= 1;
