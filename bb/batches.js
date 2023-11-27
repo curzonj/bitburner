@@ -8,7 +8,6 @@ export async function main(ns) {
     ['debug', false],
     ['trace', false],
     ['tail', false],
-    ['maxThreads', 99999999999],
     ['systemUnhealthy', 2],
     ['maxUtil', 0.90],
     ['minUtil', 0.85],
@@ -28,7 +27,7 @@ export async function main(ns) {
   const maxCycleTime = targets.reduce((acc, n) => Math.max(acc, ns.getWeakenTime(n)), 0);
   const unhealthyCounters = {};
   let skipHack = false;
-  let maxThreads = flagArgs.maxThreads;
+  let maxThreads = 99999999999;
   let unhealthyThreshold = Math.min(flagArgs.systemUnhealthy, targets.length - 1);
 
   activeTargets().forEach(unhealthyCheck);
@@ -99,7 +98,7 @@ export async function main(ns) {
     const installed = lib.getTotalMemoryInstalled(ns);
 
     if (skipHack) {
-      if (inUse > installed * flagArgs.maxUtil) maxThreads -= 1;
+      if (maxThreads > 1 && inUse > installed * flagArgs.maxUtil) maxThreads -= 1;
       if (firstCycleComplete && inUse < installed * flagArgs.minUtil) maxThreads += 1;
       if (!systemUnhealthy()) {
         skipHack = false;
