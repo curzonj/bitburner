@@ -188,7 +188,7 @@ export async function main(ns) {
 
       // BEFORE BLACKOUT
       const nextBatchAt = dueAt.shift();
-      const hackStartAt = Math.floor(nextBatchAt - hackTime - margin);
+      const hackStartsAt = Math.floor(nextBatchAt - hackTime - margin);
       const calc = hackStartsAt - Date.now();
       if (nextBlackoutEnds && hackStart < nextBlackoutEnds) {
         if (flagArgs.trace) {
@@ -196,7 +196,7 @@ export async function main(ns) {
           ns.print({
             margin, growLead,
             dueAt, hackTime, weakenTime, growTime,
-            now: Date.now(), nextBatchAt, nextBlackoutEnds,
+            now: Date.now(), nextBatchAt, nextBlackoutEnds, hackStartsAt,
             theory, calc,
           });
         }
