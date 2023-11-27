@@ -108,8 +108,13 @@ export async function main(ns) {
     } else if (inUse > installed * flagArgs.maxUtil) {
       if (hackPercentage > 0.001) hackPercentage -= 0.001;
     } else if (firstCycleComplete && inUse < installed * flagArgs.minUtil && free > 60) {
-      // +0.005 at 50% memory usage, converge faster when memory usage is low
-      hackPercentage += ((installed - inUse) / (installed * 100));
+      if (free > 200) {
+        // +0.005 at 50% memory usage, converge faster when memory usage is low
+        hackPercentage += ((installed - inUse) / (installed * 100));
+      } else {
+        // early game there's not enough resources to scale much
+        hackPercentage += 0.001
+      }
     }
 
     hackPercentage = Math.max(hackPercentage, 0.001);
