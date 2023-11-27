@@ -146,6 +146,7 @@ export async function main(ns) {
     let safety = 1;
     let dueAt = [];
     let margin = 30;
+    let nextBlackoutEnds = null;
 
     while (true) {
       const batchPrefix = 14;
@@ -184,28 +185,30 @@ export async function main(ns) {
       }
 
       // BEFORE BLACKOUT
-      const nextBatchAt = dueAt.shift();
-      const theory = Math.ceil((hackTime - growLead - ((batchPrefix - 2) * margin)));
-      const calc = Math.ceil(nextBatchAt - Date.now() - margin - hackTime);
-
-      // Calc is sometimes broken, not sure why
-      if (calc > theory - margin && calc < theory + margin) {
-        await ns.asleep(calc);
-      } else {
+      nextBatchAt = dueAt.shift();
+      const hackStartAt = Math.floor(nextBatchAt - hackTime - margin);
+      const calc = hackStartsAt - Date.now();
+      if (nextBlackoutEnds && hackStart < nextBlackoutEnds) {
         if (flagArgs.trace) {
+          const theory = Math.ceil((hackTime - growLead - ((batchPrefix - 2) * margin)));
           ns.print({
             margin, growLead,
             dueAt, hackTime, weakenTime, growTime,
-            now: Date.now(), nextBatchAt,
+            now: Date.now(), nextBatchAt, nextBlackoutEnds,
             theory, calc,
           });
         }
-        await ns.asleep(theory);
+
+        await ns.asleep(nextBlackEnds - Date.now());
+        continue;
       }
+
+      await ns.asleep(calc);
       // AFTER BLACKOUT
 
       if (success && lib.isServerOptimal(ns, name)) {
         await spawnThreads(lib.rpcHack, threads.hack, name);
+        nextBlackoutEnds = Date.now() + Math.ceil(ns.getHackTime(name) + (4*margin));
       }
     }
   }
