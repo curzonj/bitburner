@@ -41,7 +41,7 @@ export async function main(ns) {
     firstCycleComplete = true;
   }
 
-  const spawnOpts = { ns, reservedMemory: flagArgs.reserved, shard: !flagArgs.trace };
+  const spawnOpts = { ns, reservedMemory: flagArgs.reserved, shard: !flagArgs.trace, debug: flagArgs.debug };
   async function spawnThreads(rpc, threads, arg) {
     if (flagArgs.debug) {
       ns.print(`Spawned ${rpc} on ${arg}`);

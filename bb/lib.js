@@ -153,7 +153,7 @@ export async function spawnThreads($, rpc, threads, arg) {
   if (remaining < 1) {
     return true;
   } else {
-    if (flagArgs.debug) {
+    if ($.debug) {
       ns.print("ERROR: spawn failed ", { rpc, threads, remaining, arg, required: ns.formatRam(scriptMemReq * threads) });
     }
 
