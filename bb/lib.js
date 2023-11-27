@@ -163,8 +163,8 @@ export async function spawnThreads($, rpc, threads, arg) {
 
 export function resizeTail(ns) {
   const [ width, height ] = ns.ui.windowSize();
-  ns.moveTail(75, 0);
-  ns.resizeTail(width-200, height);
+  ns.moveTail(70, 0);
+  ns.resizeTail(width-200, height-10);
 }
 
 export async function listen(ns, portNumber, fn) {
