@@ -33,11 +33,12 @@ export async function main(ns) {
     // TODO, just report the % money, and difficulty, not stability
 
     ns.tprint(ns.sprintf(
-      "%(name)' -20s %(levelReq)' 4d %(money)' 7s %(max)' 10s +%(difficulty)' -10.2f %(pointer)' 2s",
+      "%(name)' -20s %(levelReq)' 4d %(money)' 7s %(max)' 10s %(sym)s%(difficulty)' -9.2f %(pointer)' 2s",
       {
         name, levelReq, money: ns.formatPercent(money/maxMoney),
         max: ns.formatNumber(maxMoney), difficulty: hackDifficulty - minDifficulty,
         pointer: isServerOptimal(ns, name) ? '' : '<-',
+        sym: (hackDifficulty > minDifficulty) ? '+' : ' ',
       },
     ));
   }
