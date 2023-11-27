@@ -98,8 +98,8 @@ export async function main(ns) {
     const installed = lib.getTotalMemoryInstalled(ns);
 
     if (skipHack) {
-      if (maxThreads > 1 && inUse > installed * flagArgs.maxUtil) maxThreads -= 1;
-      if (firstCycleComplete && inUse < installed * flagArgs.minUtil) maxThreads += 1;
+      if (maxThreads > 1 && inUse > installed * flagArgs.maxUtil) maxThreads -= 0.1;
+      if (firstCycleComplete && inUse < installed * flagArgs.minUtil) maxThreads += 0.1;
       if (!systemUnhealthy()) {
         skipHack = false;
         unhealthyThreshold = Math.min(flagArgs.systemUnhealthy, targets.length - 1);
@@ -254,8 +254,8 @@ export async function main(ns) {
 
     const threads = {
       name,
-      hack: Math.min(flagArgs.maxThreads, Math.ceil(hackPercentage / ns.hackAnalyze(name))),
-      grow: Math.min(flagArgs.maxThreads, Math.ceil(ns.growthAnalyze(name, growthFactor)) + safety),
+      hack: Math.min(Math.ceil(maxThreads), Math.ceil(hackPercentage / ns.hackAnalyze(name))),
+      grow: Math.min(Math.ceil(maxThreads), Math.ceil(ns.growthAnalyze(name, growthFactor)) + safety),
     }
 
     const extraDifficulty = hackDifficulty - minDifficulty;
