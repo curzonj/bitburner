@@ -166,9 +166,10 @@ export async function main(ns) {
       const threads = calculateThreads(name, safety);
       if (threads == null) return;
 
+      let success = true;
       const weakenTime = ns.getWeakenTime(name);
       if (!flagArgs.skipHack) {
-        let success = await spawnThreads(lib.rpcWeaken, threads.hackWeaken, name);
+        success &&= await spawnThreads(lib.rpcWeaken, threads.hackWeaken, name);
         dueAt.push(Date.now()+Math.ceil(weakenTime));
       }
 
