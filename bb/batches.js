@@ -278,7 +278,7 @@ export async function main(ns) {
     let budget = 0;
 
     do {
-      hackPercentage += 0.005;
+      hackPercentage += 0.001;
       if (hackPercentage >= 0.6) return;
 
       budget = activeTargets()
@@ -297,7 +297,7 @@ export async function main(ns) {
     } while(budget*4 < available);
 
     // The last round went over, so back it off
-    hackPercentage -= 0.005;
+    hackPercentage -= 0.001;
   }
 
   await bootstrapParameters();
