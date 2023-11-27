@@ -185,15 +185,15 @@ export async function main(ns) {
 
       // BEFORE BLACKOUT
       const nextBatchAt = dueAt.shift();
-      const theory = (hackTime - growLead - ((batchPrefix - 2) * margin));
-      const calc = nextBatchAt - Date.now() - margin - hackTime;
+      const theory = Math.ceil((hackTime - growLead - ((batchPrefix - 2) * margin)));
+      const calc = Matth.ciel(nextBatchAt - Date.now() - margin - hackTime);
+      ns.asleep(nextBatchAt - Date.now).then(() => ns.print("hack weaken due now"));
       ns.print({
         margin, growLead,
         dueAt, hackTime, weakenTime, growTime,
         now: Date.now(), nextBatchAt,
         theory, calc,
       });
-      ns.exit();
       await ns.asleep(theory);
       // AFTER BLACKOUT
 
