@@ -159,7 +159,7 @@ export async function main(ns) {
 
       const weakenTime = ns.getWeakenTime(name);
       let success = await spawnThreads(lib.rpcWeaken, threads.hackWeaken, name);
-      dueAt.push(Date.now()+weakenTime);
+      dueAt.push(Date.now()+Math.ceil(weakenTime));
 
       await ns.asleep(margin * 2);
       if (success) {
@@ -184,7 +184,7 @@ export async function main(ns) {
       }
 
       // BEFORE BLACKOUT
-      const nextBatchAt = dueAt.pop();
+      const nextBatchAt = dueAt.unshift();
       const theory = (hackTime - growLead - ((batchPrefix - 2) * margin));
       const calc = nextBatchAt - Date.now() - margin - hackTime;
       ns.print({
