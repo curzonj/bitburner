@@ -96,6 +96,7 @@ export async function main(ns) {
   function updateTuningParameters() {
     const inUse = lib.getTotalMemoryInUse(ns);
     const installed = lib.getTotalMemoryInstalled(ns);
+    const free = installed - inUse;
 
     if (skipHack) {
       if (!systemUnhealthy()) {
@@ -106,7 +107,7 @@ export async function main(ns) {
       if (hackPercentage > 0.011) hackPercentage -= 0.01;
     } else if (inUse > installed * flagArgs.maxUtil) {
       if (hackPercentage > 0.001) hackPercentage -= 0.001;
-    } else if (firstCycleComplete && inUse < installed * flagArgs.minUtil) {
+    } else if (firstCycleComplete && inUse < installed * flagArgs.minUtil && free > 60) {
       // +0.005 at 50% memory usage, converge faster when memory usage is low
       hackPercentage += ((installed - inUse) / (installed * 100));
     }
