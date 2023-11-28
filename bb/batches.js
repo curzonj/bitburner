@@ -70,10 +70,13 @@ export async function main(ns) {
     const inUse = lib.getTotalMemoryInUse(ns);
     const installed = lib.getTotalMemoryInstalled(ns);
     const free = installed - inUse;
+    const healthy = activeTargets().every(isOptimal);
 
-    if (skipHack && activeTargets().every(isOptimal)) skipHack = false;
+    if (skipHack && healthy) skipHack = false;
 
-    if (inUse < installed * flagArgs.minUtil) {
+    // Memory usage can dramatically drop when the system
+    // is recovering from an unhealthy state.
+    if (healthy && inUse < installed * flagArgs.minUtil) {
       if (free > 600) {
         // +0.05 at 50% memory usage, converge faster when memory usage is low
         hackPercentage += ((installed - inUse) / (installed * 10));
