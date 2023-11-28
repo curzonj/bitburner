@@ -126,7 +126,7 @@ export async function main(ns) {
 
     let safety = 1;
     let queue = [];
-    let margin = 30;
+    let margin = 100;
     let nextBlackoutEnds = null;
 
     while (true) {
