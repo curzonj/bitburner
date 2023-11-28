@@ -8,7 +8,7 @@ export async function main(ns) {
     ['debug', false],
     ['trace', false],
     ['tail', false],
-    ['initialMemoryFactor', 0.7],
+    ['initialMemoryFactor', 0.5],
     ['systemUnhealthy', 2],
     ['maxThreads', 999999999999],
     ['maxUtil', 0.90],
@@ -105,14 +105,10 @@ export async function main(ns) {
         skipHack = false;
         unhealthyThreshold = Math.min(flagArgs.systemUnhealthy, targets.length - 1);
       }
-    } else if (systemUnhealthy()) {
-      if (hackPercentage > 0.011) hackPercentage -= 0.01;
-    } else if (inUse > installed * flagArgs.maxUtil) {
-      if (hackPercentage > 0.001) hackPercentage -= 0.001;
     } else if (inUse < installed * flagArgs.minUtil && free > 200) {
       if (free > 600) {
-        // +0.005 at 50% memory usage, converge faster when memory usage is low
-        hackPercentage += ((installed - inUse) / (installed * 100));
+        // +0.05 at 50% memory usage, converge faster when memory usage is low
+        hackPercentage += ((installed - inUse) / (installed * 10));
       } else {
         // early game there's not enough resources to scale much
         hackPercentage += 0.001
