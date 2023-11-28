@@ -98,7 +98,7 @@ export async function main(ns) {
       const freeMem = installed - inUse;
 
       const data = {
-        unhealthy: activeTargets().filter(n => !isOptimal(n).length,
+        unhealthy: activeTargets().filter(n => !isOptimal(n)).length,
         steal: hackPercentage,
         free: ns.formatRam(freeMem),
         usedPct: ns.formatPercent(inUse / installed),
