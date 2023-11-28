@@ -181,11 +181,8 @@ export async function main(ns) {
       const weakenTime = ns.getWeakenTime(name);
       if (!skipHack) {
         success &&= await spawnThreads(lib.rpcWeaken, threads.hackWeaken, name);
-        queue.push({
-          dueAt: Date.now()+Math.ceil(weakenTime),
-          hackThreads: threads.hack,
-        });
       }
+      const dueAt = Date.now()+Math.ceil(weakenTime);
 
       await ns.asleep(margin * 2);
       if (success) {
@@ -203,8 +200,13 @@ export async function main(ns) {
         success &&= await spawnThreads(lib.rpcGrow, threads.grow, name);
       }
 
+      queue.push({
+        dueAt,
+        hackThreads: (skipHack || !success ? 0 : threads.hack),
+      });
+
       const hackTime = ns.getHackTime(name);
-      if (skipHack || queue.length < 3) {
+      if (queue.length < 3) {
         await ns.asleep(hackTime - growLead - ((batchPrefix - 2) * margin));
         continue;
       }
@@ -229,12 +231,12 @@ export async function main(ns) {
         await ns.asleep(hackStartsAt - Date.now());
         // AFTER BLACKOUT
 
-        if (success && lib.isServerOptimal(ns, name)) {
+        if (hackThreads > 0 && success && lib.isServerOptimal(ns, name)) {
           await spawnThreads(lib.rpcHack, Math.min(threads.hack, hackThreads), name);
-          nextBlackoutEnds = Date.now() + Math.ceil(ns.getHackTime(name) + (4*margin));
         }
       }
 
+      nextBlackoutEnds = nextBatchAt + (3 * margin);
       if (!success && hackPercentage > 0.001) hackPercentage -= 0.001;
     }
   }
