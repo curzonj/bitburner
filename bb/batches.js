@@ -9,7 +9,6 @@ export async function main(ns) {
     ['trace', false],
     ['tail', false],
     ['initialMemoryFactor', 0.5],
-    ['systemUnhealthy', 2],
     ['maxThreads', 999999999999],
     ['maxUtil', 0.90],
     ['minUtil', 0.85],
@@ -27,16 +26,12 @@ export async function main(ns) {
 
   const targets = flagArgs.target.length > 0 ? flagArgs.target : lib.validTargets(ns);
   const maxCycleTime = targets.reduce((acc, n) => Math.max(acc, ns.getWeakenTime(n)), 0);
-  const unhealthyCounters = {};
-  let skipHack = false;
   const maxThreads = flagArgs.maxThreads;
-  let unhealthyThreshold = Math.min(flagArgs.systemUnhealthy, targets.length - 1);
 
-  activeTargets().forEach(unhealthyCheck);
-  if (systemUnhealthy()) {
-    ns.tprint("system is unhealthy, preparing the servers first");
-    skipHack = true;
-    unhealthyThreshold = 0;
+  let skipHack = false;
+  if (!activeTargets().every(isOptimal)) {
+    ns.tprint("preparing the servers first");
+    skipHack = false;
   }
 
   async function parameterTuningLoop() {
@@ -68,31 +63,8 @@ export async function main(ns) {
     return targets.filter(n => ns.getServerRequiredHackingLevel(n) < myLevel/2);
   }
 
-  function unhealthyCheck(name) {
-    unhealthyCounters[name] = !isOptimal(name);
-
-    return isUnhealthy(name);
-  }
-
-  function isUnhealthy(name) {
-    return unhealthyCounters[name];
-  }
-
   function isOptimal(name) {
     return lib.isServerOptimal(ns, name);
-  }
-
-  function unhealthyCount() {
-    return activeTargets().filter(isUnhealthy).length;
-  }
-
-  function systemUnhealthy() {
-    const inUse = lib.getTotalMemoryInUse(ns);
-    const installed = lib.getTotalMemoryInstalled(ns);
-
-    if (inUse > installed * 0.98) return true;
-
-    return unhealthyCount() > unhealthyThreshold;
   }
 
   function updateTuningParameters() {
@@ -100,16 +72,13 @@ export async function main(ns) {
     const installed = lib.getTotalMemoryInstalled(ns);
     const free = installed - inUse;
 
-    if (skipHack) {
-      if (!systemUnhealthy()) {
-        skipHack = false;
-        unhealthyThreshold = Math.min(flagArgs.systemUnhealthy, targets.length - 1);
-      }
-    } else if (inUse < installed * flagArgs.minUtil && free > 200) {
+    if (skipHack && activeTargets().every(isOptimal)) skipHack = false;
+
+    if (inUse < installed * flagArgs.minUtil) {
       if (free > 600) {
         // +0.05 at 50% memory usage, converge faster when memory usage is low
         hackPercentage += ((installed - inUse) / (installed * 10));
-      } else {
+      } else if (free > 200) {
         // early game there's not enough resources to scale much
         hackPercentage += 0.001
       }
@@ -129,23 +98,14 @@ export async function main(ns) {
       const freeMem = installed - inUse;
 
       const data = {
-        maxThreads,
-        unhealthy: unhealthyCount(),
+        unhealthy: activeTargets().filter(n => !isOptimal(n).length,
         steal: hackPercentage,
         free: ns.formatRam(freeMem),
         usedPct: ns.formatPercent(inUse / installed),
         earned: ns.formatNumber(money),
       };
 
-      try {
-        if (skipHack) {
-          ns.print(ns.sprintf(" %(maxThreads)' 2d / %(unhealthy)' 2d  Mem: %(usedPct)' 6s / %(free)' 8s  $ %(earned)' 8s",data));
-        } else {
-          ns.print(ns.sprintf(" %(steal)' 5.3f / %(unhealthy)' 2d  Mem: %(usedPct)' 6s / %(free)' 8s  $ %(earned)' 8s",data));
-        }
-      } catch(e) {
-        ns.print("ERROR: ", data);
-      }
+      ns.print(ns.sprintf(" %(steal)' 5.3f / %(unhealthy)' 2d  Mem: %(usedPct)' 6s / %(free)' 8s  $ %(earned)' 8s",data));
       await ns.asleep(5000);
     }
   }
@@ -173,7 +133,7 @@ export async function main(ns) {
 
       await ns.asleep(batchPrefix * margin);
 
-      if (unhealthyCheck(name)) safety++;
+      if (!isOptimal(name)) safety++;
       const threads = calculateThreads(name, safety);
       if (threads == null) return;
 
@@ -237,7 +197,7 @@ export async function main(ns) {
       }
 
       nextBlackoutEnds = nextBatchAt + (3 * margin);
-      if (!success && hackPercentage > 0.001) hackPercentage -= 0.001;
+      if (!skipHack && !success && hackPercentage > 0.001) hackPercentage -= 0.001;
     }
   }
 
