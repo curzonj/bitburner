@@ -10,8 +10,7 @@ export async function main(ns) {
     ['tail', false],
     ['initialMemoryFactor', 0.5],
     ['maxThreads', 999999999999],
-    ['maxUtil', 0.90],
-    ['minUtil', 0.85],
+    ['minUtil', 0.80],
     ['reserved', 10],
     ['target', []],
   ]);
